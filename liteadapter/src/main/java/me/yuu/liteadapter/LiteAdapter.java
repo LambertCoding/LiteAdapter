@@ -16,48 +16,37 @@ import java.util.List;
  *
  * @author yu
  */
-public class LiteAdapter extends RecyclerView.Adapter<ViewHolder> implements DataHelper {
+public class LiteAdapter extends RecyclerView.Adapter<ViewHolder> implements DataOperator {
 
-    private List<Object> mDataSet = new ArrayList<>();
+    private List mDataSet = new ArrayList<>();
     private OnItemClickListener mOnItemClickListener;
     private OnItemLongClickListener mOnItemLongClickListener;
     private ViewTypeLinker mViewTypeLinker;
+    private View mEmptyView;
     /**
      * key   : viewType
      * value : ViewInjector
      */
-    private final SparseArray<ViewInjector> mViewInjectors = new SparseArray<>();
+    private SparseArray<ViewInjector> mViewInjectors;
 
-    public final <T> LiteAdapter register(int viewType, ViewInjector<T> injector) {
-        if (injector == null) {
-            throw new IllegalArgumentException("the injector == null.");
+    private LiteAdapter(Builder builder) {
+        this.mViewInjectors = builder.injectors;
+        this.mViewTypeLinker = builder.viewTypeLinker;
+        this.mOnItemClickListener = builder.onItemClickListener;
+        this.mOnItemLongClickListener = builder.onItemLongClickListener;
+        this.mEmptyView = builder.emptyView;
+
+        if (builder.data != null) {
+            this.mDataSet = builder.data;
         }
-        if (mViewInjectors.indexOfKey(viewType) < 0) {
-            mViewInjectors.put(viewType, injector);
-        } else {
-            throw new IllegalArgumentException("You have registered this viewType:" + viewType);
+
+        if (mEmptyView != null) {
+            registerAdapterDataObserver(new EmptyDataObserver(mEmptyView));
         }
-        return this;
     }
 
-    public LiteAdapter viewTypeLinker(@NonNull ViewTypeLinker linker) {
-        if (mViewTypeLinker != null) {
-            throw new IllegalStateException("You already have one ViewTypeLinker");
-        }
-        this.mViewTypeLinker = linker;
-        return this;
-    }
-
-    public LiteAdapter attachTo(@NonNull RecyclerView recyclerView) {
+    public void attachTo(@NonNull RecyclerView recyclerView) {
         recyclerView.setAdapter(this);
-        return this;
-    }
-
-    public LiteAdapter data(List data) {
-        if (data != null) {
-            mDataSet = data;
-        }
-        return this;
     }
 
     @Override
@@ -148,13 +137,15 @@ public class LiteAdapter extends RecyclerView.Adapter<ViewHolder> implements Dat
     }
 
     @Override
-    public void addItem(Object item) {
-        mDataSet.add(item);
-        notifyDataSetChanged();
+    public void addItem(@NonNull Object item) {
+        if (item != null) {
+            mDataSet.add(item);
+            notifyDataSetChanged();
+        }
     }
 
     @Override
-    public void addItems(List items) {
+    public void addItems(@NonNull List items) {
         if (items != null && !items.isEmpty()) {
             mDataSet.addAll(items);
             notifyDataSetChanged();
@@ -162,13 +153,29 @@ public class LiteAdapter extends RecyclerView.Adapter<ViewHolder> implements Dat
     }
 
     @Override
-    public void addItemToHead(Object item) {
+    public void addItem(int index, @NonNull Object item) {
+        if (item != null) {
+            mDataSet.add(index, item);
+            notifyDataSetChanged();
+        }
+    }
+
+    @Override
+    public void addItems(int index, @NonNull List items) {
+        if (items != null && !items.isEmpty()) {
+            mDataSet.addAll(index, items);
+            notifyDataSetChanged();
+        }
+    }
+
+    @Override
+    public void addItemToHead(@NonNull Object item) {
         mDataSet.add(0, item);
         notifyDataSetChanged();
     }
 
     @Override
-    public void addItemsToHead(List items) {
+    public void addItemsToHead(@NonNull List items) {
         if (items != null && !items.isEmpty()) {
             mDataSet.addAll(0, items);
             notifyDataSetChanged();
@@ -236,30 +243,43 @@ public class LiteAdapter extends RecyclerView.Adapter<ViewHolder> implements Dat
         void onItemLongClick(int position, Object item);
     }
 
-
-
     public static final class Builder {
         OnItemClickListener onItemClickListener;
         OnItemLongClickListener onItemLongClickListener;
         ViewTypeLinker viewTypeLinker;
-        final SparseArray<ViewInjector> injectors = new SparseArray<>();
+        SparseArray<ViewInjector> injectors = new SparseArray<>();
+        List data;
+        View emptyView;
 
-        public Builder itemClickListener(OnItemClickListener listener) {
+        public Builder emptyView(View empty) {
+            this.emptyView = empty;
+            return this;
+        }
+
+        public Builder withData(List data) {
+            this.data = data;
+            return this;
+        }
+
+        public Builder itemClickListener(@NonNull OnItemClickListener listener) {
             this.onItemClickListener = listener;
             return this;
         }
 
-        public Builder itemLongClickListener(OnItemLongClickListener listener) {
+        public Builder itemLongClickListener(@NonNull OnItemLongClickListener listener) {
             this.onItemLongClickListener = listener;
             return this;
         }
 
-        public Builder viewTypeLinker(ViewTypeLinker linker) {
+        public Builder viewTypeLinker(@NonNull ViewTypeLinker linker) {
+            if (viewTypeLinker != null) {
+                throw new IllegalStateException("You already have one ViewTypeLinker");
+            }
             this.viewTypeLinker = linker;
             return this;
         }
 
-        public final <T> Builder register(int viewType, ViewInjector<T> injector) {
+        public final <T> Builder register(int viewType, @NonNull ViewInjector<T> injector) {
             if (injector == null) {
                 throw new IllegalArgumentException("the injector == null.");
             }
@@ -269,6 +289,10 @@ public class LiteAdapter extends RecyclerView.Adapter<ViewHolder> implements Dat
                 throw new IllegalArgumentException("You have registered this viewType:" + viewType);
             }
             return this;
+        }
+
+        public LiteAdapter create() {
+            return new LiteAdapter(this);
         }
     }
 }

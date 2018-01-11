@@ -14,7 +14,7 @@ public abstract class ViewInjector<D> {
         this.layoutId = layoutId;
     }
 
-    public int getLayoutId() {
+    int getLayoutId() {
         return layoutId;
     }
 

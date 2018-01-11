@@ -5,6 +5,7 @@ import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -29,7 +30,7 @@ public class MainActivity extends AppCompatActivity {
         refreshLayout = findViewById(R.id.refreshLayout);
 
 
-        adapter = new LiteAdapter()
+        adapter = new LiteAdapter.Builder()
                 .register(0, new ViewInjector<User>(R.layout.item_normal) {
                     @Override
                     public void bindData(ViewHolder holder, User item, int position) {
@@ -62,7 +63,14 @@ public class MainActivity extends AppCompatActivity {
                         }
                     }
                 })
-                .attachTo(recyclerView);
+                .itemClickListener(new LiteAdapter.OnItemClickListener() {
+                    @Override
+                    public void onItemClick(int position, Object item) {
+                        Log.w("test", item.getClass().getName() + "::" + position);
+                    }
+                })
+                .create();
+        adapter.attachTo(recyclerView);
 
         loadData();
     }
