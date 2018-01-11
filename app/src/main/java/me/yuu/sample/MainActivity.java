@@ -30,13 +30,19 @@ public class MainActivity extends AppCompatActivity {
 
 
         adapter = new LiteAdapter()
-                .register(R.layout.item_normal, new ViewInjector<User>() {
+                .register(0, new ViewInjector<User>(R.layout.item_normal) {
                     @Override
                     public void bindData(ViewHolder holder, User item, int position) {
 
                     }
                 })
-                .register(R.layout.item_gray, new ViewInjector<Setion>() {
+                .register(1, new ViewInjector<User>(R.layout.item_yellow) {
+                    @Override
+                    public void bindData(ViewHolder holder, User item, int position) {
+
+                    }
+                })
+                .register(2, new ViewInjector<Setion>(R.layout.item_gray) {
                     @Override
                     public void bindData(ViewHolder holder, Setion item, int position) {
 
@@ -46,9 +52,13 @@ public class MainActivity extends AppCompatActivity {
                     @Override
                     public int viewType(Object item, int position) {
                         if (item instanceof User) {
-                            return 0;
+                            if (position % 2 == 0) {
+                                return 0;
+                            } else {
+                                return 1;
+                            }
                         } else {
-                            return 1;
+                            return 2;
                         }
                     }
                 })
