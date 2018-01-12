@@ -13,6 +13,15 @@ import android.view.ViewGroup;
 
 import java.util.List;
 
+import me.yuu.liteadapter.core.DataOperator;
+import me.yuu.liteadapter.core.ItemManager;
+import me.yuu.liteadapter.core.ViewHolder;
+import me.yuu.liteadapter.core.ViewInjector;
+import me.yuu.liteadapter.core.ViewTypeLinker;
+import me.yuu.liteadapter.loadmore.DefaultLoadMoreFooter;
+import me.yuu.liteadapter.loadmore.ILoadMoreFooter;
+import me.yuu.liteadapter.loadmore.MoreLoader;
+
 /**
  * RecyclerView的通用Adapter
  *
@@ -21,14 +30,16 @@ import java.util.List;
 @SuppressWarnings("all")
 public class LiteAdapter extends RecyclerView.Adapter<ViewHolder> implements DataOperator {
 
-    static final int VIEW_TYPE_EMPTY = -7061;
-    static final int VIEW_TYPE_HEADER_INDEX = -7060;
-    static final int VIEW_TYPE_FOOTER_INDEX = -8060;
+    public static final int VIEW_TYPE_EMPTY = -7061;
+    public static final int VIEW_TYPE_HEADER_INDEX = -7060;
+    public static final int VIEW_TYPE_FOOTER_INDEX = -8060;
 
     private ItemManager mItemManager;
+    private MoreLoader mMoreLoader;
 
     private LiteAdapter(Builder builder) {
         this.mItemManager = ItemManager.create(builder);
+        this.mMoreLoader = builder.moreLoader;
     }
 
     @Override
@@ -57,6 +68,10 @@ public class LiteAdapter extends RecyclerView.Adapter<ViewHolder> implements Dat
                 }
             });
         }
+
+        if (mMoreLoader != null) {
+            recyclerView.addOnScrollListener(mMoreLoader);
+        }
     }
 
     @Override
@@ -64,7 +79,9 @@ public class LiteAdapter extends RecyclerView.Adapter<ViewHolder> implements Dat
         super.onViewAttachedToWindow(holder);
         ViewGroup.LayoutParams lp = holder.itemView.getLayoutParams();
         if (lp != null && lp instanceof StaggeredGridLayoutManager.LayoutParams
-                && (mItemManager.isHeader(holder.getLayoutPosition()) || mItemManager.isFooter(holder.getLayoutPosition()))) {
+                && (mItemManager.isEmptyViewEnable()
+                || mItemManager.isHeader(holder.getLayoutPosition())
+                || mItemManager.isFooter(holder.getLayoutPosition()))) {
             StaggeredGridLayoutManager.LayoutParams p = (StaggeredGridLayoutManager.LayoutParams) lp;
             p.setFullSpan(true);
         }
@@ -78,6 +95,24 @@ public class LiteAdapter extends RecyclerView.Adapter<ViewHolder> implements Dat
     @Override
     public void onBindViewHolder(ViewHolder holder, int position) {
         mItemManager.bindViewHolder(holder, position);
+    }
+
+    public void loadMoreCompleted() {
+        if (mMoreLoader != null) {
+            mMoreLoader.loadMoreCompleted();
+        }
+    }
+
+    public void loadMoreError() {
+        if (mMoreLoader != null) {
+            mMoreLoader.loadMoreError();
+        }
+    }
+
+    public void noMore() {
+        if (mMoreLoader != null) {
+            mMoreLoader.noMore();
+        }
     }
 
     public List getDataSet() {
@@ -187,13 +222,19 @@ public class LiteAdapter extends RecyclerView.Adapter<ViewHolder> implements Dat
     }
 
     public static final class Builder {
-        OnItemClickListener onItemClickListener;
-        OnItemLongClickListener onItemLongClickListener;
-        ViewTypeLinker viewTypeLinker;
-        SparseArray<ViewInjector> injectors = new SparseArray<>();
-        SparseArray<View> herders = new SparseArray<>();
-        SparseArray<View> footers = new SparseArray<>();
-        View emptyView;
+        public OnItemClickListener onItemClickListener;
+        public OnItemLongClickListener onItemLongClickListener;
+        public ViewTypeLinker viewTypeLinker;
+        public SparseArray<ViewInjector> injectors = new SparseArray<>();
+        public SparseArray<View> herders = new SparseArray<>();
+        public SparseArray<View> footers = new SparseArray<>();
+        public View emptyView;
+        public Context context;
+        public MoreLoader moreLoader;
+
+        public Builder(Context context) {
+            this.context = context;
+        }
 
         public Builder emptyView(View empty) {
             if (emptyView != null) {
@@ -254,11 +295,39 @@ public class LiteAdapter extends RecyclerView.Adapter<ViewHolder> implements Dat
             if (footer == null) {
                 throw new IllegalArgumentException("the footer == null.");
             }
+
             ViewGroup.LayoutParams params = new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
                     ViewGroup.LayoutParams.WRAP_CONTENT);
             footer.setLayoutParams(params);
-            int footerType = VIEW_TYPE_FOOTER_INDEX + footers.size();
-            footers.put(footerType, footer);
+
+            if (moreLoader != null) {
+                int key = footers.keyAt(footers.size() - 1);
+                View loadMoreFooter = footers.valueAt(footers.size() - 1);
+
+                footers.put(key, footer);
+
+                int footerType = VIEW_TYPE_FOOTER_INDEX + footers.size();
+                footers.put(footerType, loadMoreFooter);
+            } else {
+
+                int footerType = VIEW_TYPE_FOOTER_INDEX + footers.size();
+                footers.put(footerType, footer);
+            }
+
+            return this;
+        }
+
+        public Builder enableLoadMore(@NonNull MoreLoader.LoadMoreListener loadMoreListener) {
+            return enableLoadMore(loadMoreListener, new DefaultLoadMoreFooter(context));
+        }
+
+        public Builder enableLoadMore(@NonNull MoreLoader.LoadMoreListener loadMoreListener, @NonNull ILoadMoreFooter loadMoreFooter) {
+            if (moreLoader != null) {
+                throw new IllegalStateException("You have already called enableLoadMore, Don't call again!");
+            }
+
+            footerView(loadMoreFooter.getView());
+            moreLoader = new MoreLoader(loadMoreListener, loadMoreFooter);
             return this;
         }
 

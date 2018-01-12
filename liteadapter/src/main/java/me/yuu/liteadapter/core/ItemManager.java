@@ -1,4 +1,4 @@
-package me.yuu.liteadapter;
+package me.yuu.liteadapter.core;
 
 import android.util.Log;
 import android.util.SparseArray;
@@ -9,13 +9,15 @@ import android.view.ViewGroup;
 import java.util.ArrayList;
 import java.util.List;
 
+import me.yuu.liteadapter.LiteAdapter;
+
 import static me.yuu.liteadapter.LiteAdapter.VIEW_TYPE_EMPTY;
 
 /**
  * @author yu
  * @date 2018/1/12
  */
-class ItemManager {
+public class ItemManager {
 
     private List mDataSet = new ArrayList<>();
     private View mEmptyView;
@@ -46,12 +48,12 @@ class ItemManager {
         this.mOnItemLongClickListener = onItemLongClickListener;
     }
 
-    static ItemManager create(LiteAdapter.Builder builder) {
+    public static ItemManager create(LiteAdapter.Builder builder) {
         return new ItemManager(builder.emptyView, builder.herders, builder.footers, builder.injectors,
                 builder.viewTypeLinker, builder.onItemClickListener, builder.onItemLongClickListener);
     }
 
-    List getDataSet() {
+    public List getDataSet() {
         return mDataSet;
     }
 
@@ -73,26 +75,26 @@ class ItemManager {
         return mFooters != null && mFooters.size() > 0 && mFooters.get(viewType) != null;
     }
 
-    boolean isHeader(int position) {
+    public boolean isHeader(int position) {
         return mHerders != null && mHerders.size() > 0 && position >= 0 && position < mHerders.size();
     }
 
-    boolean isFooter(int position) {
+    public boolean isFooter(int position) {
         return mFooters != null && mFooters.size() > 0 && position >= mHerders.size() + mDataSet.size();
     }
 
-    boolean isEmptyViewEnable() {
+    public boolean isEmptyViewEnable() {
         return mEmptyView != null && mDataSet.size() == 0;
     }
 
-    int getItemCount() {
+    public int getItemCount() {
         if (isEmptyViewEnable()) {
             return 1;
         }
         return mDataSet.size() + mHerders.size() + mFooters.size();
     }
 
-    int getItemViewType(int position) {
+    public int getItemViewType(int position) {
         if (isEmptyViewEnable()) {
             return VIEW_TYPE_EMPTY;
         }
@@ -127,7 +129,7 @@ class ItemManager {
         return mViewInjectors.keyAt(0);
     }
 
-    ViewHolder createViewHolder(ViewGroup parent, int viewType) {
+    public ViewHolder createViewHolder(ViewGroup parent, int viewType) {
         if (viewType == VIEW_TYPE_EMPTY) {
             return new ViewHolder(mEmptyView);
         } else if (isHeaderType(viewType)) {
@@ -146,7 +148,7 @@ class ItemManager {
         }
     }
 
-    void bindViewHolder(ViewHolder holder, int position) {
+    public void bindViewHolder(ViewHolder holder, int position) {
         if (isHeader(position) || isFooter(position) || isEmptyViewEnable()) {
             return;
         }

@@ -1,4 +1,4 @@
-package me.yuu.liteadapter;
+package me.yuu.liteadapter.core;
 
 import android.support.annotation.LayoutRes;
 

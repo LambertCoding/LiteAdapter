@@ -12,9 +12,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 import me.yuu.liteadapter.LiteAdapter;
-import me.yuu.liteadapter.ViewHolder;
-import me.yuu.liteadapter.ViewInjector;
-import me.yuu.liteadapter.ViewTypeLinker;
+import me.yuu.liteadapter.loadmore.MoreLoader;
+import me.yuu.liteadapter.core.ViewHolder;
+import me.yuu.liteadapter.core.ViewInjector;
+import me.yuu.liteadapter.core.ViewTypeLinker;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -34,7 +35,7 @@ public class MainActivity extends AppCompatActivity {
 //        recyclerView.setLayoutManager(new GridLayoutManager(this, 2));
         recyclerView.setLayoutManager(new StaggeredGridLayoutManager(2, StaggeredGridLayoutManager.VERTICAL));
 
-        adapter = new LiteAdapter.Builder()
+        adapter = new LiteAdapter.Builder(this)
                 .register(0, new ViewInjector<User>(R.layout.item_normal) {
                     @Override
                     public void bindData(ViewHolder holder, User item, int position) {
@@ -73,6 +74,25 @@ public class MainActivity extends AppCompatActivity {
                 .headerView(this, R.layout.item_head3)
                 .footerView(this, R.layout.item_footer1)
                 .footerView(this, R.layout.item_footer2)
+                .enableLoadMore(new MoreLoader.LoadMoreListener() {
+                    @Override
+                    public void onLoadMore() {
+                        handler.postDelayed(new Runnable() {
+                            @Override
+                            public void run() {
+                                loadMore();
+                                long timeMillis = System.currentTimeMillis();
+                                if (timeMillis % 5 == 0 || timeMillis % 5 == 1) {
+                                    adapter.loadMoreCompleted();
+                                } else if (timeMillis % 5 == 2 || timeMillis % 5 == 3) {
+                                    adapter.loadMoreError();
+                                } else if (timeMillis % 5 == 4) {
+                                    adapter.noMore();
+                                }
+                            }
+                        }, 1500);
+                    }
+                })
                 .itemClickListener(new LiteAdapter.OnItemClickListener() {
                     @Override
                     public void onItemClick(int position, Object item) {
@@ -106,6 +126,10 @@ public class MainActivity extends AppCompatActivity {
 
     private void loadData() {
         adapter.setNewData(data);
+    }
+
+    private void loadMore() {
+        adapter.addItems(data);
     }
 
     {
