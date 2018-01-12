@@ -196,6 +196,9 @@ public class LiteAdapter extends RecyclerView.Adapter<ViewHolder> implements Dat
         View emptyView;
 
         public Builder emptyView(View empty) {
+            if (emptyView != null) {
+                throw new IllegalStateException("You have already set a empty view.");
+            }
             ViewGroup.LayoutParams params = new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
                     ViewGroup.LayoutParams.MATCH_PARENT);
             empty.setLayoutParams(params);

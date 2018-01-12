@@ -56,7 +56,7 @@ class ItemManager {
     }
 
     /**
-     * 是否是LiteAdapter的保留的view类型，比如空view，Header和Footer
+     * 是否是LiteAdapter的保留的view类型，比如空view，Header和Footer都有指定的ViewType
      *
      * @param viewType type
      * @return is Reserved view type
@@ -163,7 +163,17 @@ class ItemManager {
             throw new NullPointerException("You haven't registered this viewType yet : " + viewType
                     + ". Or you return the wrong value in the ViewTypeLinker.");
         }
-        injector.bindData(holder, item, position);
+
+        try {
+            injector.bindData(holder, item, position);
+        } catch (ClassCastException e) {
+            // 发生这个异常是由于使用多种实体类型的时候,ViewTypeLinker返回了错误的ViewType
+            // 比如：注册了一个类型111，实体类型是User：adapter.register(111, new ViewInjector<User>(R.layout.item_user)
+            //      注册了一个类型222，实体类型是Student：adapter.register(222, new ViewInjector<Student>(R.layout.item_student)
+            // 但是在ViewTypeLinker中，获取到的实体是User，但是返回的条目类型是111，就会出现这个异常；
+            throw new IllegalStateException("Returned the wrong view type in ViewTypeLinker.");
+        }
+
 
         setupItemClickListener(holder, position);
         setupItemLongClickListener(holder, position);

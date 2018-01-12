@@ -1,6 +1,7 @@
 package me.yuu.sample;
 
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.RecyclerView;
@@ -20,16 +21,18 @@ public class MainActivity extends AppCompatActivity {
     private RecyclerView recyclerView;
     private SwipeRefreshLayout refreshLayout;
     private LiteAdapter adapter;
+    private List<Object> data = new ArrayList<>();
+    private Handler handler = new Handler();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
         recyclerView = findViewById(R.id.recyclerView);
 //        recyclerView.setLayoutManager(new LinearLayoutManager(this));
 //        recyclerView.setLayoutManager(new GridLayoutManager(this, 2));
         recyclerView.setLayoutManager(new StaggeredGridLayoutManager(2, StaggeredGridLayoutManager.VERTICAL));
-        refreshLayout = findViewById(R.id.refreshLayout);
 
         adapter = new LiteAdapter.Builder()
                 .register(0, new ViewInjector<User>(R.layout.item_normal) {
@@ -76,54 +79,65 @@ public class MainActivity extends AppCompatActivity {
                         Toast.makeText(MainActivity.this, item.getClass().getName() + "::" + position, Toast.LENGTH_SHORT).show();
                     }
                 })
+                .itemLongClickListener(new LiteAdapter.OnItemLongClickListener() {
+                    @Override
+                    public void onItemLongClick(int position, Object item) {
+
+                    }
+                })
                 .create();
         recyclerView.setAdapter(adapter);
 
+
+        refreshLayout = findViewById(R.id.refreshLayout);
         refreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
             public void onRefresh() {
-                loadData();
-                refreshLayout.setRefreshing(false);
+                handler.postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        loadData();
+                        refreshLayout.setRefreshing(false);
+                    }
+                }, 1500);
             }
         });
     }
 
     private void loadData() {
-        List<Object> data = new ArrayList<>();
-        data.add(new User());
-        data.add(new User());
-        data.add(new Setion());
-        data.add(new User());
-        data.add(new User());
-        data.add(new Setion());
-        data.add(new Setion());
-        data.add(new User());
-        data.add(new User());
-        data.add(new User());
-        data.add(new Setion());
-        data.add(new User());
-        data.add(new User());
-        data.add(new Setion());
-        data.add(new Setion());
-        data.add(new Setion());
-        data.add(new User());
-        data.add(new User());
-        data.add(new User());
-        data.add(new Setion());
-        data.add(new Setion());
-        data.add(new User());
-        data.add(new Setion());
-        data.add(new User());
-        data.add(new User());
-        data.add(new Setion());
-        data.add(new Setion());
-        data.add(new Setion());
-        data.add(new User());
-        data.add(new User());
-        data.add(new User());
-        data.add(new Setion());
-        data.add(new Setion());
-
         adapter.setNewData(data);
+    }
+
+    {
+        data.add(new User());
+        data.add(new Setion());
+        data.add(new User());
+        data.add(new User());
+        data.add(new Setion());
+        data.add(new Setion());
+        data.add(new User());
+        data.add(new User());
+        data.add(new User());
+        data.add(new Setion());
+        data.add(new User());
+        data.add(new User());
+        data.add(new Setion());
+        data.add(new Setion());
+        data.add(new Setion());
+        data.add(new User());
+        data.add(new User());
+        data.add(new User());
+        data.add(new Setion());
+        data.add(new Setion());
+        data.add(new User());
+        data.add(new Setion());
+        data.add(new User());
+        data.add(new User());
+        data.add(new Setion());
+        data.add(new Setion());
+        data.add(new User());
+        data.add(new User());
+        data.add(new User());
+        data.add(new Setion());
     }
 }
