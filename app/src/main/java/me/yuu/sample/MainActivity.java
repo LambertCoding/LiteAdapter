@@ -3,9 +3,9 @@ package me.yuu.sample;
 import android.os.Bundle;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
+import android.support.v7.widget.StaggeredGridLayoutManager;
+import android.widget.Toast;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -26,9 +26,10 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         recyclerView = findViewById(R.id.recyclerView);
-        recyclerView.setLayoutManager(new LinearLayoutManager(this));
+//        recyclerView.setLayoutManager(new LinearLayoutManager(this));
+//        recyclerView.setLayoutManager(new GridLayoutManager(this, 2));
+        recyclerView.setLayoutManager(new StaggeredGridLayoutManager(2, StaggeredGridLayoutManager.VERTICAL));
         refreshLayout = findViewById(R.id.refreshLayout);
-
 
         adapter = new LiteAdapter.Builder()
                 .register(0, new ViewInjector<User>(R.layout.item_normal) {
@@ -63,16 +64,28 @@ public class MainActivity extends AppCompatActivity {
                         }
                     }
                 })
+                .emptyView(this, R.layout.empty_view)
+                .headerView(this, R.layout.item_head1)
+                .headerView(this, R.layout.item_head2)
+                .headerView(this, R.layout.item_head3)
+                .footerView(this, R.layout.item_footer1)
+                .footerView(this, R.layout.item_footer2)
                 .itemClickListener(new LiteAdapter.OnItemClickListener() {
                     @Override
                     public void onItemClick(int position, Object item) {
-                        Log.w("test", item.getClass().getName() + "::" + position);
+                        Toast.makeText(MainActivity.this, item.getClass().getName() + "::" + position, Toast.LENGTH_SHORT).show();
                     }
                 })
                 .create();
-        adapter.attachTo(recyclerView);
+        recyclerView.setAdapter(adapter);
 
-        loadData();
+        refreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+            @Override
+            public void onRefresh() {
+                loadData();
+                refreshLayout.setRefreshing(false);
+            }
+        });
     }
 
     private void loadData() {
@@ -86,6 +99,18 @@ public class MainActivity extends AppCompatActivity {
         data.add(new Setion());
         data.add(new User());
         data.add(new User());
+        data.add(new User());
+        data.add(new Setion());
+        data.add(new User());
+        data.add(new User());
+        data.add(new Setion());
+        data.add(new Setion());
+        data.add(new Setion());
+        data.add(new User());
+        data.add(new User());
+        data.add(new User());
+        data.add(new Setion());
+        data.add(new Setion());
         data.add(new User());
         data.add(new Setion());
         data.add(new User());

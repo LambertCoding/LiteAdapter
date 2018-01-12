@@ -40,6 +40,9 @@ public class ViewHolder extends RecyclerView.ViewHolder {
         return itemView.getContext();
     }
 
+    public interface Action<V extends View> {
+        void doAction(V view);
+    }
 
     /**
      * 根据id查找view
@@ -51,6 +54,11 @@ public class ViewHolder extends RecyclerView.ViewHolder {
             mCahceViews.put(viewId, target);
         }
         return (T) target;
+    }
+
+    public <V extends View> ViewHolder with(int viewId, Action<V> action) {
+        action.doAction((V) findById(viewId));
+        return this;
     }
 
     /**
