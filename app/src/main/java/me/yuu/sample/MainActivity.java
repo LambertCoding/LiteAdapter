@@ -6,16 +6,17 @@ import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.StaggeredGridLayoutManager;
+import android.view.View;
 import android.widget.Toast;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import me.yuu.liteadapter.LiteAdapter;
-import me.yuu.liteadapter.loadmore.MoreLoader;
+import me.yuu.liteadapter.core.LiteAdapter;
 import me.yuu.liteadapter.core.ViewHolder;
 import me.yuu.liteadapter.core.ViewInjector;
 import me.yuu.liteadapter.core.ViewTypeLinker;
+import me.yuu.liteadapter.loadmore.MoreLoader;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -29,6 +30,12 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        findViewById(R.id.btnInsert).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                adapter.addAll(2, data);
+            }
+        });
 
         recyclerView = findViewById(R.id.recyclerView);
 //        recyclerView.setLayoutManager(new LinearLayoutManager(this));
@@ -69,28 +76,15 @@ public class MainActivity extends AppCompatActivity {
                     }
                 })
                 .emptyView(this, R.layout.empty_view)
-                .headerView(this, R.layout.item_head1)
-                .headerView(this, R.layout.item_head2)
-                .headerView(this, R.layout.item_head3)
-                .footerView(this, R.layout.item_footer1)
-                .footerView(this, R.layout.item_footer2)
+                .headerView(View.inflate(this, R.layout.item_head1, null))
+                .headerView(View.inflate(this, R.layout.item_head2, null))
+                .headerView(View.inflate(this, R.layout.item_head3, null))
+                .footerView(View.inflate(this, R.layout.item_footer1, null))
+                .footerView(View.inflate(this, R.layout.item_footer2, null))
                 .enableLoadMore(new MoreLoader.LoadMoreListener() {
                     @Override
                     public void onLoadMore() {
-                        handler.postDelayed(new Runnable() {
-                            @Override
-                            public void run() {
-                                loadMore();
-                                long timeMillis = System.currentTimeMillis();
-                                if (timeMillis % 5 == 0 || timeMillis % 5 == 1) {
-                                    adapter.loadMoreCompleted();
-                                } else if (timeMillis % 5 == 2 || timeMillis % 5 == 3) {
-                                    adapter.loadMoreError();
-                                } else if (timeMillis % 5 == 4) {
-                                    adapter.noMore();
-                                }
-                            }
-                        }, 1500);
+                        loadMore();
                     }
                 })
                 .itemClickListener(new LiteAdapter.OnItemClickListener() {
@@ -102,7 +96,7 @@ public class MainActivity extends AppCompatActivity {
                 .itemLongClickListener(new LiteAdapter.OnItemLongClickListener() {
                     @Override
                     public void onItemLongClick(int position, Object item) {
-
+                        adapter.remove(position);
                     }
                 })
                 .create();
@@ -113,53 +107,46 @@ public class MainActivity extends AppCompatActivity {
         refreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
             public void onRefresh() {
-                handler.postDelayed(new Runnable() {
-                    @Override
-                    public void run() {
-                        loadData();
-                        refreshLayout.setRefreshing(false);
-                    }
-                }, 1500);
+                loadData();
             }
         });
     }
 
     private void loadData() {
-        adapter.setNewData(data);
+        handler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                adapter.setNewData(data);
+                refreshLayout.setRefreshing(false);
+            }
+        }, 1000);
     }
 
     private void loadMore() {
-        adapter.addItems(data);
+        handler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                long timeMillis = System.currentTimeMillis();
+                if (timeMillis % 5 == 0 || timeMillis % 5 == 1) {
+                    adapter.addAll(data);
+                    adapter.loadMoreCompleted();
+                } else if (timeMillis % 5 == 2 || timeMillis % 5 == 3) {
+                    adapter.loadMoreError();
+                } else if (timeMillis % 5 == 4) {
+                    adapter.noMore();
+                }
+            }
+        }, 1000);
+
     }
 
     {
         data.add(new User());
         data.add(new Setion());
-        data.add(new User());
-        data.add(new User());
-        data.add(new Setion());
-        data.add(new Setion());
-        data.add(new User());
-        data.add(new User());
-        data.add(new User());
-        data.add(new Setion());
-        data.add(new User());
-        data.add(new User());
-        data.add(new Setion());
-        data.add(new Setion());
-        data.add(new Setion());
-        data.add(new User());
-        data.add(new User());
-        data.add(new User());
-        data.add(new Setion());
         data.add(new Setion());
         data.add(new User());
         data.add(new Setion());
-        data.add(new User());
-        data.add(new User());
         data.add(new Setion());
-        data.add(new Setion());
-        data.add(new User());
         data.add(new User());
         data.add(new User());
         data.add(new Setion());

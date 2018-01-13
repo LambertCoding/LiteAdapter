@@ -20,13 +20,14 @@ import android.widget.TextView;
  * ViewHolder操作子视图的实现类
  *
  * @author yu
+ * @date 2018/1/12
  */
 public class ViewHolder extends RecyclerView.ViewHolder {
 
     /**
      * 缓存子视图,key为view id, 值为View。
      */
-    private SparseArray<View> mCahceViews = new SparseArray<>();
+    private SparseArray<View> mCacheViews = new SparseArray<>();
 
     public ViewHolder(View itemView) {
         super(itemView);
@@ -48,10 +49,10 @@ public class ViewHolder extends RecyclerView.ViewHolder {
      * 根据id查找view
      */
     public <T extends View> T findById(int viewId) {
-        View target = mCahceViews.get(viewId);
+        View target = mCacheViews.get(viewId);
         if (target == null) {
             target = itemView.findViewById(viewId);
-            mCahceViews.put(viewId, target);
+            mCacheViews.put(viewId, target);
         }
         return (T) target;
     }

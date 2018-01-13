@@ -1,6 +1,7 @@
-package me.yuu.liteadapter;
+package me.yuu.liteadapter.core;
 
 import android.content.Context;
+import android.support.annotation.IntRange;
 import android.support.annotation.LayoutRes;
 import android.support.annotation.NonNull;
 import android.support.v7.widget.GridLayoutManager;
@@ -13,11 +14,6 @@ import android.view.ViewGroup;
 
 import java.util.List;
 
-import me.yuu.liteadapter.core.DataOperator;
-import me.yuu.liteadapter.core.ItemManager;
-import me.yuu.liteadapter.core.ViewHolder;
-import me.yuu.liteadapter.core.ViewInjector;
-import me.yuu.liteadapter.core.ViewTypeLinker;
 import me.yuu.liteadapter.loadmore.DefaultLoadMoreFooter;
 import me.yuu.liteadapter.loadmore.ILoadMoreFooter;
 import me.yuu.liteadapter.loadmore.MoreLoader;
@@ -26,6 +22,7 @@ import me.yuu.liteadapter.loadmore.MoreLoader;
  * RecyclerView的通用Adapter
  *
  * @author yu
+ * @date 2018/1/12
  */
 @SuppressWarnings("all")
 public class LiteAdapter extends RecyclerView.Adapter<ViewHolder> implements DataOperator {
@@ -34,8 +31,8 @@ public class LiteAdapter extends RecyclerView.Adapter<ViewHolder> implements Dat
     public static final int VIEW_TYPE_HEADER_INDEX = -7060;
     public static final int VIEW_TYPE_FOOTER_INDEX = -8060;
 
-    private ItemManager mItemManager;
-    private MoreLoader mMoreLoader;
+    private final ItemManager mItemManager;
+    private final MoreLoader mMoreLoader;
 
     private LiteAdapter(Builder builder) {
         this.mItemManager = ItemManager.create(builder);
@@ -78,12 +75,13 @@ public class LiteAdapter extends RecyclerView.Adapter<ViewHolder> implements Dat
     public void onViewAttachedToWindow(ViewHolder holder) {
         super.onViewAttachedToWindow(holder);
         ViewGroup.LayoutParams lp = holder.itemView.getLayoutParams();
-        if (lp != null && lp instanceof StaggeredGridLayoutManager.LayoutParams
-                && (mItemManager.isEmptyViewEnable()
-                || mItemManager.isHeader(holder.getLayoutPosition())
-                || mItemManager.isFooter(holder.getLayoutPosition()))) {
-            StaggeredGridLayoutManager.LayoutParams p = (StaggeredGridLayoutManager.LayoutParams) lp;
-            p.setFullSpan(true);
+        if (lp != null && lp instanceof StaggeredGridLayoutManager.LayoutParams) {
+            if (mItemManager.isEmptyViewEnable()
+                    || mItemManager.isHeader(holder.getLayoutPosition())
+                    || mItemManager.isFooter(holder.getLayoutPosition())) {
+                StaggeredGridLayoutManager.LayoutParams p = (StaggeredGridLayoutManager.LayoutParams) lp;
+                p.setFullSpan(true);
+            }
         }
     }
 
@@ -120,97 +118,93 @@ public class LiteAdapter extends RecyclerView.Adapter<ViewHolder> implements Dat
     }
 
     @Override
-    public boolean contains(Object d) {
-        return mItemManager.getDataSet().contains(d);
-    }
-
-    @Override
-    public void addItem(@NonNull Object item) {
+    public void addData(@NonNull Object item) {
         if (item != null) {
-            mItemManager.getDataSet().add(item);
-            notifyDataSetChanged();
+            int position = mItemManager.getHeadersSize() + getDataSet().size();
+            getDataSet().add(item);
+            notifyItemInserted(position);
         }
     }
 
     @Override
-    public void addItems(@NonNull List items) {
-        if (items != null && !items.isEmpty()) {
-            mItemManager.getDataSet().addAll(items);
-            notifyDataSetChanged();
-        }
-    }
-
-    @Override
-    public void addItem(int index, @NonNull Object item) {
+    public void addData(@IntRange(from = 0) int position, @NonNull Object item) {
         if (item != null) {
-            mItemManager.getDataSet().add(index, item);
-            notifyDataSetChanged();
+            getDataSet().add(position, item);
+            notifyItemInserted(mItemManager.getHeadersSize() + position);
         }
     }
 
     @Override
-    public void addItems(int index, @NonNull List items) {
+    public void addDataToHead(@NonNull Object item) {
+        addData(0, item);
+    }
+
+    @Override
+    public void addAll(@NonNull List items) {
         if (items != null && !items.isEmpty()) {
-            mItemManager.getDataSet().addAll(index, items);
-            notifyDataSetChanged();
+            int startPosition = mItemManager.getHeadersSize() + getDataSet().size();
+            getDataSet().addAll(items);
+            notifyItemRangeInserted(startPosition, items.size());
         }
     }
 
     @Override
-    public void addItemToHead(@NonNull Object item) {
-        mItemManager.getDataSet().add(0, item);
-        notifyDataSetChanged();
-    }
-
-    @Override
-    public void addItemsToHead(@NonNull List items) {
+    public void addAll(@IntRange(from = 0) int position, List items) {
         if (items != null && !items.isEmpty()) {
-            mItemManager.getDataSet().addAll(0, items);
-            notifyDataSetChanged();
+            int startPosition = mItemManager.getHeadersSize() + position;
+            getDataSet().addAll(items);
+            notifyItemRangeInserted(startPosition, items.size());
         }
     }
 
     @Override
-    public void remove(int position) {
-        mItemManager.getDataSet().remove(position);
-        notifyDataSetChanged();
+    public void addAllToHead(@NonNull List items) {
+        addAll(0, items);
     }
 
     @Override
-    public void remove(Object item) {
-        mItemManager.getDataSet().remove(item);
-        notifyDataSetChanged();
+    public void remove(@IntRange(from = 0) int position) {
+        getDataSet().remove(position);
+        if (getDataSet().isEmpty()) {
+            notifyDataSetChanged();
+        } else {
+            notifyItemRemoved(mItemManager.getHeadersSize() + position);
+        }
     }
 
     @Override
     public void clear() {
-        mItemManager.getDataSet().clear();
+        getDataSet().clear();
         notifyDataSetChanged();
     }
 
     @Override
     public void setNewData(List items) {
-        mItemManager.getDataSet().clear();
+        getDataSet().clear();
         if (items != null && !items.isEmpty()) {
-            mItemManager.getDataSet().addAll(items);
+            getDataSet().addAll(items);
         }
         notifyDataSetChanged();
     }
 
     @Override
-    public Object getItem(int position) {
-        return mItemManager.getDataSet().get(position);
+    public Object getItem(@IntRange(from = 0) int position) {
+        return getDataSet().get(position);
     }
 
     @Override
-    public void modify(Object oldData, Object newData) {
-        modify(mItemManager.getDataSet().indexOf(oldData), newData);
+    public void modify(@IntRange(from = 0) int position, Object newData) {
+        if (newData == null) {
+            return;
+        }
+        getDataSet().set(position, newData);
+        notifyItemChanged(mItemManager.getHeadersSize() + position);
     }
 
     @Override
-    public void modify(int index, Object newData) {
-        mItemManager.getDataSet().set(index, newData);
-        notifyDataSetChanged();
+    public void modify(@IntRange(from = 0) int position, Action action) {
+        action.doAction(getDataSet().get(position));
+        notifyItemChanged(mItemManager.getHeadersSize() + position);
     }
 
     public interface OnItemClickListener {
@@ -222,15 +216,15 @@ public class LiteAdapter extends RecyclerView.Adapter<ViewHolder> implements Dat
     }
 
     public static final class Builder {
+        public Context context;
+        public View emptyView;
+        public MoreLoader moreLoader;
+        public ViewTypeLinker viewTypeLinker;
         public OnItemClickListener onItemClickListener;
         public OnItemLongClickListener onItemLongClickListener;
-        public ViewTypeLinker viewTypeLinker;
-        public SparseArray<ViewInjector> injectors = new SparseArray<>();
-        public SparseArray<View> herders = new SparseArray<>();
-        public SparseArray<View> footers = new SparseArray<>();
-        public View emptyView;
-        public Context context;
-        public MoreLoader moreLoader;
+        public final SparseArray<View> herders = new SparseArray<>();
+        public final SparseArray<View> footers = new SparseArray<>();
+        public final SparseArray<ViewInjector> injectors = new SparseArray<>();
 
         public Builder(Context context) {
             this.context = context;
@@ -263,19 +257,9 @@ public class LiteAdapter extends RecyclerView.Adapter<ViewHolder> implements Dat
 
         public Builder viewTypeLinker(@NonNull ViewTypeLinker linker) {
             if (viewTypeLinker != null) {
-                throw new IllegalStateException("You already have one ViewTypeLinker");
+                throw new IllegalStateException("Only one ViewTypeLinker can be registered.");
             }
             this.viewTypeLinker = linker;
-            return this;
-        }
-
-        public Builder headerView(Context context, @LayoutRes int header) {
-            headerView(LayoutInflater.from(context).inflate(header, null));
-            return this;
-        }
-
-        public Builder footerView(Context context, @LayoutRes int footer) {
-            footerView(LayoutInflater.from(context).inflate(footer, null));
             return this;
         }
 
@@ -283,9 +267,7 @@ public class LiteAdapter extends RecyclerView.Adapter<ViewHolder> implements Dat
             if (header == null) {
                 throw new IllegalArgumentException("the header == null.");
             }
-            ViewGroup.LayoutParams params = new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
-                    ViewGroup.LayoutParams.WRAP_CONTENT);
-            header.setLayoutParams(params);
+
             int headerType = VIEW_TYPE_HEADER_INDEX + herders.size();
             herders.put(headerType, header);
             return this;
@@ -295,10 +277,6 @@ public class LiteAdapter extends RecyclerView.Adapter<ViewHolder> implements Dat
             if (footer == null) {
                 throw new IllegalArgumentException("the footer == null.");
             }
-
-            ViewGroup.LayoutParams params = new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
-                    ViewGroup.LayoutParams.WRAP_CONTENT);
-            footer.setLayoutParams(params);
 
             if (moreLoader != null) {
                 int key = footers.keyAt(footers.size() - 1);

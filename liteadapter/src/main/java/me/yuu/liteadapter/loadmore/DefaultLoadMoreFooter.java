@@ -55,7 +55,7 @@ public class DefaultLoadMoreFooter extends LinearLayout implements ILoadMoreFoot
         LayoutParams textParams = new LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.MATCH_PARENT);
         textParams.leftMargin = Utils.dp2px(context, 10);
         mText = new TextView(context);
-        mText.setTextSize(Utils.sp2px(context, 12f));
+        mText.setTextSize(Utils.sp2px(context, 10f));
         mText.setLayoutParams(textParams);
         mText.setGravity(Gravity.CENTER);
         addView(mText);

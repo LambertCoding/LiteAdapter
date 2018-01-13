@@ -4,35 +4,35 @@ import java.util.List;
 
 /**
  * @author yu.
+ * @date 2018/1/12
  */
 public interface DataOperator<D> {
 
     D getItem(int position);
 
-    boolean contains(D d);
+    void addData(D item);
 
-    void addItem(D item);
+    void addData(int position, D item);
 
-    void addItems(List<D> items);
+    void addDataToHead(D item);
 
-    void addItem(int index, D item);
+    void addAll(List<D> items);
 
-    void addItems(int index, List<D> items);
+    void addAll(int position, List<D> items);
 
-    void addItemToHead(D item);
-
-    void addItemsToHead(List<D> items);
+    void addAllToHead(List<D> items);
 
     void remove(int position);
 
-    void remove(D item);
+    void modify(int position, D newData);
 
-    void modify(D oldData, D newData);
-
-    void modify(int index, D newData);
+    void modify(int position, Action<D> action);
 
     void setNewData(List<D> items);
 
     void clear();
 
+    interface Action<T> {
+        void doAction(T data);
+    }
 }

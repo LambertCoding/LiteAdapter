@@ -9,15 +9,13 @@ import android.view.ViewGroup;
 import java.util.ArrayList;
 import java.util.List;
 
-import me.yuu.liteadapter.LiteAdapter;
-
-import static me.yuu.liteadapter.LiteAdapter.VIEW_TYPE_EMPTY;
+import static me.yuu.liteadapter.core.LiteAdapter.VIEW_TYPE_EMPTY;
 
 /**
  * @author yu
  * @date 2018/1/12
  */
-public class ItemManager {
+class ItemManager {
 
     private List mDataSet = new ArrayList<>();
     private View mEmptyView;
@@ -48,13 +46,26 @@ public class ItemManager {
         this.mOnItemLongClickListener = onItemLongClickListener;
     }
 
-    public static ItemManager create(LiteAdapter.Builder builder) {
+    static ItemManager create(LiteAdapter.Builder builder) {
         return new ItemManager(builder.emptyView, builder.herders, builder.footers, builder.injectors,
                 builder.viewTypeLinker, builder.onItemClickListener, builder.onItemLongClickListener);
     }
 
-    public List getDataSet() {
+    List getDataSet() {
         return mDataSet;
+    }
+
+    public int adjustPosition(int position) {
+        if (isHeader(position)) {
+            return position;
+        } else if (isFooter(position)) {
+            return position - mHerders.size() - mDataSet.size();
+        }
+        return position - mHerders.size();
+    }
+
+    int getHeadersSize() {
+        return mHerders.size();
     }
 
     /**
@@ -75,26 +86,26 @@ public class ItemManager {
         return mFooters != null && mFooters.size() > 0 && mFooters.get(viewType) != null;
     }
 
-    public boolean isHeader(int position) {
+    boolean isHeader(int position) {
         return mHerders != null && mHerders.size() > 0 && position >= 0 && position < mHerders.size();
     }
 
-    public boolean isFooter(int position) {
+    boolean isFooter(int position) {
         return mFooters != null && mFooters.size() > 0 && position >= mHerders.size() + mDataSet.size();
     }
 
-    public boolean isEmptyViewEnable() {
+    boolean isEmptyViewEnable() {
         return mEmptyView != null && mDataSet.size() == 0;
     }
 
-    public int getItemCount() {
+    int getItemCount() {
         if (isEmptyViewEnable()) {
             return 1;
         }
         return mDataSet.size() + mHerders.size() + mFooters.size();
     }
 
-    public int getItemViewType(int position) {
+    int getItemViewType(int position) {
         if (isEmptyViewEnable()) {
             return VIEW_TYPE_EMPTY;
         }
@@ -129,7 +140,7 @@ public class ItemManager {
         return mViewInjectors.keyAt(0);
     }
 
-    public ViewHolder createViewHolder(ViewGroup parent, int viewType) {
+    ViewHolder createViewHolder(ViewGroup parent, int viewType) {
         if (viewType == VIEW_TYPE_EMPTY) {
             return new ViewHolder(mEmptyView);
         } else if (isHeaderType(viewType)) {
@@ -148,7 +159,7 @@ public class ItemManager {
         }
     }
 
-    public void bindViewHolder(ViewHolder holder, int position) {
+    void bindViewHolder(ViewHolder holder, int position) {
         if (isHeader(position) || isFooter(position) || isEmptyViewEnable()) {
             return;
         }
@@ -167,7 +178,7 @@ public class ItemManager {
         }
 
         try {
-            injector.bindData(holder, item, position);
+            injector.bindData(holder, item, position - mHerders.size());
         } catch (ClassCastException e) {
             // 发生这个异常是由于使用多种实体类型的时候,ViewTypeLinker返回了错误的ViewType
             // 比如：注册了一个类型111，实体类型是User：adapter.register(111, new ViewInjector<User>(R.layout.item_user)
@@ -176,9 +187,8 @@ public class ItemManager {
             throw new IllegalStateException("Returned the wrong view type in ViewTypeLinker.");
         }
 
-
-        setupItemClickListener(holder, position);
-        setupItemLongClickListener(holder, position);
+        setupItemClickListener(holder);
+        setupItemLongClickListener(holder);
     }
 
     private Object getItem(int position) {
@@ -188,28 +198,29 @@ public class ItemManager {
         return mDataSet.get(position - mHerders.size());
     }
 
-    private void setupItemClickListener(final ViewHolder viewHolder, final int position) {
+    private void setupItemClickListener(final ViewHolder viewHolder) {
         viewHolder.itemView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 if (mOnItemClickListener != null) {
-                    int pos = viewHolder.getLayoutPosition();
-                    mOnItemClickListener.onItemClick(pos, getItem(pos));
+                    int position = viewHolder.getLayoutPosition();
+                    mOnItemClickListener.onItemClick(position - mHerders.size(), getItem(position));
                 }
             }
         });
     }
 
-    private void setupItemLongClickListener(final ViewHolder viewHolder, final int position) {
+    private void setupItemLongClickListener(final ViewHolder viewHolder) {
         viewHolder.itemView.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
             public boolean onLongClick(View view) {
                 if (mOnItemLongClickListener != null) {
-                    int pos = viewHolder.getLayoutPosition();
-                    mOnItemLongClickListener.onItemLongClick(pos, getItem(pos));
+                    int position = viewHolder.getLayoutPosition();
+                    mOnItemLongClickListener.onItemLongClick(position - mHerders.size(), getItem(position));
                 }
-                return false;
+                return true;
             }
         });
     }
+
 }
