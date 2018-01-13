@@ -78,7 +78,6 @@ public class MainActivity extends AppCompatActivity {
                 .emptyView(this, R.layout.empty_view)
                 .headerView(View.inflate(this, R.layout.item_head1, null))
                 .headerView(View.inflate(this, R.layout.item_head2, null))
-                .headerView(View.inflate(this, R.layout.item_head3, null))
                 .footerView(View.inflate(this, R.layout.item_footer1, null))
                 .footerView(View.inflate(this, R.layout.item_footer2, null))
                 .enableLoadMore(new MoreLoader.LoadMoreListener() {
@@ -118,6 +117,7 @@ public class MainActivity extends AppCompatActivity {
             public void run() {
                 adapter.setNewData(data);
                 refreshLayout.setRefreshing(false);
+//                adapter.disableLoadMoreIfNotFullPage(recyclerView);
             }
         }, 1000);
     }
@@ -144,10 +144,6 @@ public class MainActivity extends AppCompatActivity {
         data.add(new User());
         data.add(new Setion());
         data.add(new Setion());
-        data.add(new User());
-        data.add(new Setion());
-        data.add(new Setion());
-        data.add(new User());
         data.add(new User());
         data.add(new Setion());
     }

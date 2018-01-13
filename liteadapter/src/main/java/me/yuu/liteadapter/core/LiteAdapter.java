@@ -5,6 +5,7 @@ import android.support.annotation.IntRange;
 import android.support.annotation.LayoutRes;
 import android.support.annotation.NonNull;
 import android.support.v7.widget.GridLayoutManager;
+import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.StaggeredGridLayoutManager;
 import android.util.SparseArray;
@@ -17,6 +18,7 @@ import java.util.List;
 import me.yuu.liteadapter.loadmore.DefaultLoadMoreFooter;
 import me.yuu.liteadapter.loadmore.ILoadMoreFooter;
 import me.yuu.liteadapter.loadmore.MoreLoader;
+import me.yuu.liteadapter.util.Utils;
 
 /**
  * RecyclerView的通用Adapter
@@ -47,6 +49,16 @@ public class LiteAdapter extends RecyclerView.Adapter<ViewHolder> implements Dat
     @Override
     public int getItemViewType(int position) {
         return mItemManager.getItemViewType(position);
+    }
+
+    @Override
+    public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+        return mItemManager.createViewHolder(parent, viewType);
+    }
+
+    @Override
+    public void onBindViewHolder(ViewHolder holder, int position) {
+        mItemManager.bindViewHolder(holder, position);
     }
 
     @Override
@@ -85,14 +97,51 @@ public class LiteAdapter extends RecyclerView.Adapter<ViewHolder> implements Dat
         }
     }
 
-    @Override
-    public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-        return mItemManager.createViewHolder(parent, viewType);
+    ///////////////////////////////////LoadMore////////////////////////////////
+
+    public void setLoadMoreEnable(boolean enable) {
+        if (mMoreLoader == null) {
+            if (enable)
+                throw new NullPointerException("MoreLoader == null, " +
+                        "You should call enableLoadMore when you build the LiteAdapter.");
+        } else {
+            mMoreLoader.setEnable(enable);
+        }
     }
 
-    @Override
-    public void onBindViewHolder(ViewHolder holder, int position) {
-        mItemManager.bindViewHolder(holder, position);
+    public void disableLoadMoreIfNotFullPage(RecyclerView recyclerView) {
+        if (mMoreLoader == null || recyclerView == null) {
+            return;
+        }
+        RecyclerView.LayoutManager manager = recyclerView.getLayoutManager();
+        if (manager == null) {
+            return;
+        }
+        mMoreLoader.setEnable(false);
+        if (manager instanceof LinearLayoutManager) {
+            final LinearLayoutManager linearLayoutManager = (LinearLayoutManager) manager;
+            recyclerView.postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    if ((linearLayoutManager.findLastCompletelyVisibleItemPosition() + 1) != getItemCount()) {
+                        mMoreLoader.setEnable(true);
+                    }
+                }
+            }, 50);
+        } else if (manager instanceof StaggeredGridLayoutManager) {
+            final StaggeredGridLayoutManager staggeredGridLayoutManager = (StaggeredGridLayoutManager) manager;
+            recyclerView.postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    final int[] positions = new int[staggeredGridLayoutManager.getSpanCount()];
+                    staggeredGridLayoutManager.findLastCompletelyVisibleItemPositions(positions);
+                    int pos = Utils.findMax(positions) + 1;
+                    if (pos != getItemCount()) {
+                        mMoreLoader.setEnable(true);
+                    }
+                }
+            }, 50);
+        }
     }
 
     public void loadMoreCompleted() {
@@ -112,6 +161,8 @@ public class LiteAdapter extends RecyclerView.Adapter<ViewHolder> implements Dat
             mMoreLoader.noMore();
         }
     }
+
+    ///////////////////////////////////DataOperator////////////////////////////////
 
     public List getDataSet() {
         return mItemManager.getDataSet();

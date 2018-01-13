@@ -6,12 +6,15 @@ import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.StaggeredGridLayoutManager;
 import android.view.View;
 
+import me.yuu.liteadapter.util.Utils;
+
 /**
  * @author yu
  * @date 2018/1/12
  */
 public class MoreLoader extends RecyclerView.OnScrollListener {
 
+    private boolean mLoadMoreSwitch = true;
     private LoadMoreListener mLoadMoreListener;
     private ILoadMoreFooter mLoadMoreFooter;
 
@@ -29,6 +32,13 @@ public class MoreLoader extends RecyclerView.OnScrollListener {
         });
     }
 
+    public void setEnable(boolean enable) {
+        this.mLoadMoreSwitch = enable;
+        if (!enable) {
+            mLoadMoreFooter.setStatus(ILoadMoreFooter.COMPLETED);
+        }
+    }
+
     public void loadMoreCompleted() {
         mLoadMoreFooter.setStatus(ILoadMoreFooter.COMPLETED);
     }
@@ -44,6 +54,9 @@ public class MoreLoader extends RecyclerView.OnScrollListener {
     @Override
     public void onScrollStateChanged(RecyclerView recyclerView, int newState) {
         super.onScrollStateChanged(recyclerView, newState);
+        if (!mLoadMoreSwitch) {
+            return;
+        }
         switch (newState) {
             case RecyclerView.SCROLL_STATE_IDLE:
                 if (mLoadMoreListener == null
@@ -60,7 +73,7 @@ public class MoreLoader extends RecyclerView.OnScrollListener {
                 } else if (layoutManager instanceof StaggeredGridLayoutManager) {
                     int[] into = new int[((StaggeredGridLayoutManager) layoutManager).getSpanCount()];
                     ((StaggeredGridLayoutManager) layoutManager).findLastCompletelyVisibleItemPositions(into);
-                    lastPosition = findMax(into);
+                    lastPosition = Utils.findMax(into);
                 } else {
                     lastPosition = ((LinearLayoutManager) layoutManager).findLastCompletelyVisibleItemPosition();
                 }
@@ -77,16 +90,6 @@ public class MoreLoader extends RecyclerView.OnScrollListener {
             default:
                 break;
         }
-    }
-
-    private int findMax(int[] lastPositions) {
-        int max = lastPositions[0];
-        for (int value : lastPositions) {
-            if (value > max) {
-                max = value;
-            }
-        }
-        return max;
     }
 
     public interface LoadMoreListener {
