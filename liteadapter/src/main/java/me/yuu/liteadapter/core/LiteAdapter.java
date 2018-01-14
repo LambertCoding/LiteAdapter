@@ -294,18 +294,14 @@ public class LiteAdapter extends AbstractAbapter {
                 int footerType = VIEW_TYPE_FOOTER_INDEX + mFooters.size();
                 mFooters.put(footerType, mMoreLoader.getLoadMoreFooterView());
                 hasAddLoadMoreFooter = true;
-                notifyItemInserted(getItemCount());
+                notifyDataSetChanged();
             }
         } else {
             // load more footer is aways the last one, remove it.
             if (hasAddLoadMoreFooter) {
                 mFooters.removeAt(mFooters.size() - 1);
                 hasAddLoadMoreFooter = false;
-                if (getItemCount() == 0) {
-                    notifyDataSetChanged();
-                } else {
-                    notifyItemRemoved(getItemCount() - 1);
-                }
+                notifyDataSetChanged();
             }
         }
     }
