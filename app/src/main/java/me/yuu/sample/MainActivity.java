@@ -6,6 +6,7 @@ import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.StaggeredGridLayoutManager;
+import android.util.Log;
 import android.view.View;
 import android.widget.Toast;
 
@@ -26,6 +27,8 @@ public class MainActivity extends AppCompatActivity {
     private List<Object> data = new ArrayList<>();
     private Handler handler = new Handler();
 
+    boolean loadMoreEnable = true;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -34,7 +37,8 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
 //                adapter.addAll(2, data);
-                adapter.addDataToHead(new Setion());
+//                adapter.addDataToHead(new Section());
+                adapter.setLoadMoreEnable(loadMoreEnable = !loadMoreEnable);
             }
         });
 
@@ -56,9 +60,9 @@ public class MainActivity extends AppCompatActivity {
 
                     }
                 })
-                .register(2, new ViewInjector<Setion>(R.layout.item_gray) {
+                .register(2, new ViewInjector<Section>(R.layout.item_gray) {
                     @Override
-                    public void bindData(ViewHolder holder, Setion item, int position) {
+                    public void bindData(ViewHolder holder, Section item, int position) {
 
                     }
                 })
@@ -117,12 +121,13 @@ public class MainActivity extends AppCompatActivity {
             public void run() {
                 adapter.setNewData(data);
                 refreshLayout.setRefreshing(false);
-//                adapter.disableLoadMoreIfNotFullPage(recyclerView);
+                adapter.disableLoadMoreIfNotFullPage(recyclerView);
             }
         }, 1000);
     }
 
     private void loadMore() {
+        Log.e("asd", "loadMore");
         handler.postDelayed(new Runnable() {
             @Override
             public void run() {
@@ -142,9 +147,9 @@ public class MainActivity extends AppCompatActivity {
 
     {
         data.add(new User());
-        data.add(new Setion());
-        data.add(new Setion());
+        data.add(new Section());
+        data.add(new Section());
         data.add(new User());
-        data.add(new Setion());
+        data.add(new Section());
     }
 }

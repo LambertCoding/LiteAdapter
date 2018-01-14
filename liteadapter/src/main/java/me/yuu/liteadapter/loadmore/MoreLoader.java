@@ -1,9 +1,6 @@
 package me.yuu.liteadapter.loadmore;
 
-import android.support.v7.widget.GridLayoutManager;
-import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.support.v7.widget.StaggeredGridLayoutManager;
 import android.view.View;
 
 import me.yuu.liteadapter.util.Utils;
@@ -14,7 +11,7 @@ import me.yuu.liteadapter.util.Utils;
  */
 public class MoreLoader extends RecyclerView.OnScrollListener {
 
-    private boolean mLoadMoreSwitch = true;
+    private boolean mLoadMoreSwitch;
     private LoadMoreListener mLoadMoreListener;
     private ILoadMoreFooter mLoadMoreFooter;
 
@@ -32,11 +29,16 @@ public class MoreLoader extends RecyclerView.OnScrollListener {
         });
     }
 
+    public boolean isLoadMoreEnable() {
+        return mLoadMoreSwitch;
+    }
+
     public void setEnable(boolean enable) {
         this.mLoadMoreSwitch = enable;
-        if (!enable) {
-            mLoadMoreFooter.setStatus(ILoadMoreFooter.COMPLETED);
-        }
+    }
+
+    public View getLoadMoreFooterView() {
+        return mLoadMoreFooter.getView();
     }
 
     public void loadMoreCompleted() {
@@ -67,19 +69,7 @@ public class MoreLoader extends RecyclerView.OnScrollListener {
                 }
 
                 RecyclerView.LayoutManager layoutManager = recyclerView.getLayoutManager();
-                int lastPosition;
-                if (layoutManager instanceof GridLayoutManager) {
-                    lastPosition = ((GridLayoutManager) layoutManager).findLastCompletelyVisibleItemPosition();
-                } else if (layoutManager instanceof StaggeredGridLayoutManager) {
-                    int[] into = new int[((StaggeredGridLayoutManager) layoutManager).getSpanCount()];
-                    ((StaggeredGridLayoutManager) layoutManager).findLastCompletelyVisibleItemPositions(into);
-                    lastPosition = Utils.findMax(into);
-                } else {
-                    lastPosition = ((LinearLayoutManager) layoutManager).findLastCompletelyVisibleItemPosition();
-                }
-                if (RecyclerView.NO_POSITION == lastPosition) {
-                    return;
-                }
+                int lastPosition = Utils.findLastCompletelyVisibleItemPosition(layoutManager);
 
                 if (layoutManager.getChildCount() > 0
                         && lastPosition >= layoutManager.getItemCount() - 1) {

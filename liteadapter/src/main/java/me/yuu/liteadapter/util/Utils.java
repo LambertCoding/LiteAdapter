@@ -1,6 +1,10 @@
 package me.yuu.liteadapter.util;
 
 import android.content.Context;
+import android.support.v7.widget.GridLayoutManager;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.StaggeredGridLayoutManager;
 
 /**
  * @author yu
@@ -14,22 +18,26 @@ public class Utils {
         return (int) (dpValue * scale + 0.5f);
     }
 
-    public static int px2dp(Context context, final float pxValue) {
-        final float scale = context.getResources().getDisplayMetrics().density;
-        return (int) (pxValue / scale + 0.5f);
-    }
-
     public static int sp2px(Context context, final float spValue) {
         final float fontScale = context.getResources().getDisplayMetrics().scaledDensity;
         return (int) (spValue * fontScale + 0.5f);
     }
 
-    public static int px2sp(Context context, final float pxValue) {
-        final float fontScale = context.getResources().getDisplayMetrics().scaledDensity;
-        return (int) (pxValue / fontScale + 0.5f);
+    public static int findLastCompletelyVisibleItemPosition(RecyclerView.LayoutManager layoutManager) {
+        int lastPosition;
+        if (layoutManager instanceof GridLayoutManager) {
+            lastPosition = ((GridLayoutManager) layoutManager).findLastCompletelyVisibleItemPosition();
+        } else if (layoutManager instanceof StaggeredGridLayoutManager) {
+            int[] into = new int[((StaggeredGridLayoutManager) layoutManager).getSpanCount()];
+            ((StaggeredGridLayoutManager) layoutManager).findLastCompletelyVisibleItemPositions(into);
+            lastPosition = findMax(into);
+        } else {
+            lastPosition = ((LinearLayoutManager) layoutManager).findLastCompletelyVisibleItemPosition();
+        }
+        return lastPosition;
     }
 
-    public static int findMax(int[] lastPositions) {
+    private static int findMax(int[] lastPositions) {
         int max = lastPositions[0];
         for (int value : lastPositions) {
             if (value > max) {

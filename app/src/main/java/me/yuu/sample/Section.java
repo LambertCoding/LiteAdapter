@@ -5,5 +5,5 @@ package me.yuu.sample;
  * @date 2018/1/11
  */
 
-public class Setion {
+public class Section {
 }
