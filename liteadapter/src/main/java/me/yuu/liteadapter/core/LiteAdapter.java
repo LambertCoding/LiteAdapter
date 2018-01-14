@@ -4,7 +4,6 @@ import android.content.Context;
 import android.support.annotation.IntRange;
 import android.support.annotation.LayoutRes;
 import android.support.annotation.NonNull;
-import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.StaggeredGridLayoutManager;
@@ -33,50 +32,38 @@ public class LiteAdapter extends RecyclerView.Adapter<ViewHolder> implements Dat
     public static final int VIEW_TYPE_HEADER_INDEX = -7060;
     public static final int VIEW_TYPE_FOOTER_INDEX = -8060;
 
-    private final ItemManager mItemManager;
+    private final AdapterDelegate mDelegate;
     private final MoreLoader mMoreLoader;
 
     private LiteAdapter(Builder builder) {
-        this.mItemManager = ItemManager.create(builder);
+        this.mDelegate = AdapterDelegate.create(builder);
         this.mMoreLoader = builder.moreLoader;
     }
 
     @Override
     public int getItemCount() {
-        return mItemManager.getItemCount();
+        return mDelegate.getItemCount();
     }
 
     @Override
     public int getItemViewType(int position) {
-        return mItemManager.getItemViewType(position);
+        return mDelegate.getItemViewType(position);
     }
 
     @Override
     public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-        return mItemManager.createViewHolder(parent, viewType);
+        return mDelegate.createViewHolder(parent, viewType);
     }
 
     @Override
     public void onBindViewHolder(ViewHolder holder, int position) {
-        mItemManager.bindViewHolder(holder, position);
+        mDelegate.bindViewHolder(holder, position);
     }
 
     @Override
     public void onAttachedToRecyclerView(RecyclerView recyclerView) {
         super.onAttachedToRecyclerView(recyclerView);
-        RecyclerView.LayoutManager manager = recyclerView.getLayoutManager();
-        if (manager instanceof GridLayoutManager) {
-            final GridLayoutManager gridManager = ((GridLayoutManager) manager);
-            gridManager.setSpanSizeLookup(new GridLayoutManager.SpanSizeLookup() {
-                @Override
-                public int getSpanSize(int position) {
-                    return (mItemManager.isEmptyViewEnable()
-                            || mItemManager.isHeader(position)
-                            || mItemManager.isFooter(position))
-                            ? gridManager.getSpanCount() : 1;
-                }
-            });
-        }
+        mDelegate.setFullSpanForGridView(recyclerView);
 
         if (mMoreLoader != null) {
             recyclerView.addOnScrollListener(mMoreLoader);
@@ -86,15 +73,7 @@ public class LiteAdapter extends RecyclerView.Adapter<ViewHolder> implements Dat
     @Override
     public void onViewAttachedToWindow(ViewHolder holder) {
         super.onViewAttachedToWindow(holder);
-        ViewGroup.LayoutParams lp = holder.itemView.getLayoutParams();
-        if (lp != null && lp instanceof StaggeredGridLayoutManager.LayoutParams) {
-            if (mItemManager.isEmptyViewEnable()
-                    || mItemManager.isHeader(holder.getLayoutPosition())
-                    || mItemManager.isFooter(holder.getLayoutPosition())) {
-                StaggeredGridLayoutManager.LayoutParams p = (StaggeredGridLayoutManager.LayoutParams) lp;
-                p.setFullSpan(true);
-            }
-        }
+        mDelegate.setFullSpanForStaggeredGridView(holder);
     }
 
     ///////////////////////////////////LoadMore////////////////////////////////
@@ -165,13 +144,13 @@ public class LiteAdapter extends RecyclerView.Adapter<ViewHolder> implements Dat
     ///////////////////////////////////DataOperator////////////////////////////////
 
     public List getDataSet() {
-        return mItemManager.getDataSet();
+        return mDelegate.getDataSet();
     }
 
     @Override
     public void addData(@NonNull Object item) {
         if (item != null) {
-            int position = mItemManager.getHeadersSize() + getDataSet().size();
+            int position = mDelegate.getHeadersSize() + getDataSet().size();
             getDataSet().add(item);
             notifyItemInserted(position);
         }
@@ -181,7 +160,7 @@ public class LiteAdapter extends RecyclerView.Adapter<ViewHolder> implements Dat
     public void addData(@IntRange(from = 0) int position, @NonNull Object item) {
         if (item != null) {
             getDataSet().add(position, item);
-            notifyItemInserted(mItemManager.getHeadersSize() + position);
+            notifyItemInserted(mDelegate.getHeadersSize() + position);
         }
     }
 
@@ -193,7 +172,7 @@ public class LiteAdapter extends RecyclerView.Adapter<ViewHolder> implements Dat
     @Override
     public void addAll(@NonNull List items) {
         if (items != null && !items.isEmpty()) {
-            int startPosition = mItemManager.getHeadersSize() + getDataSet().size();
+            int startPosition = mDelegate.getHeadersSize() + getDataSet().size();
             getDataSet().addAll(items);
             notifyItemRangeInserted(startPosition, items.size());
         }
@@ -202,7 +181,7 @@ public class LiteAdapter extends RecyclerView.Adapter<ViewHolder> implements Dat
     @Override
     public void addAll(@IntRange(from = 0) int position, List items) {
         if (items != null && !items.isEmpty()) {
-            int startPosition = mItemManager.getHeadersSize() + position;
+            int startPosition = mDelegate.getHeadersSize() + position;
             getDataSet().addAll(items);
             notifyItemRangeInserted(startPosition, items.size());
         }
@@ -219,7 +198,7 @@ public class LiteAdapter extends RecyclerView.Adapter<ViewHolder> implements Dat
         if (getDataSet().isEmpty()) {
             notifyDataSetChanged();
         } else {
-            notifyItemRemoved(mItemManager.getHeadersSize() + position);
+            notifyItemRemoved(mDelegate.getHeadersSize() + position);
         }
     }
 
@@ -249,13 +228,13 @@ public class LiteAdapter extends RecyclerView.Adapter<ViewHolder> implements Dat
             return;
         }
         getDataSet().set(position, newData);
-        notifyItemChanged(mItemManager.getHeadersSize() + position);
+        notifyItemChanged(mDelegate.getHeadersSize() + position);
     }
 
     @Override
     public void modify(@IntRange(from = 0) int position, Action action) {
         action.doAction(getDataSet().get(position));
-        notifyItemChanged(mItemManager.getHeadersSize() + position);
+        notifyItemChanged(mDelegate.getHeadersSize() + position);
     }
 
     public interface OnItemClickListener {
@@ -266,7 +245,7 @@ public class LiteAdapter extends RecyclerView.Adapter<ViewHolder> implements Dat
         void onItemLongClick(int position, Object item);
     }
 
-    public static final class Builder {
+    public static class Builder {
         public Context context;
         public View emptyView;
         public MoreLoader moreLoader;

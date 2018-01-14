@@ -1,5 +1,8 @@
 package me.yuu.liteadapter.core;
 
+import android.support.v7.widget.GridLayoutManager;
+import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.StaggeredGridLayoutManager;
 import android.util.Log;
 import android.util.SparseArray;
 import android.view.LayoutInflater;
@@ -15,9 +18,9 @@ import static me.yuu.liteadapter.core.LiteAdapter.VIEW_TYPE_EMPTY;
  * @author yu
  * @date 2018/1/12
  */
-class ItemManager {
+class AdapterDelegate {
 
-    private List mDataSet = new ArrayList<>();
+    private final List mDataSet = new ArrayList<>();
     private View mEmptyView;
     private SparseArray<View> mHerders;
     private SparseArray<View> mFooters;
@@ -30,13 +33,13 @@ class ItemManager {
     private LiteAdapter.OnItemClickListener mOnItemClickListener;
     private LiteAdapter.OnItemLongClickListener mOnItemLongClickListener;
 
-    private ItemManager(View mEmptyView,
-                        SparseArray<View> mHerders,
-                        SparseArray<View> mFooters,
-                        SparseArray<ViewInjector> mViewInjectors,
-                        ViewTypeLinker mViewTypeLinker,
-                        LiteAdapter.OnItemClickListener onItemClickListener,
-                        LiteAdapter.OnItemLongClickListener onItemLongClickListener) {
+    private AdapterDelegate(View mEmptyView,
+                            SparseArray<View> mHerders,
+                            SparseArray<View> mFooters,
+                            SparseArray<ViewInjector> mViewInjectors,
+                            ViewTypeLinker mViewTypeLinker,
+                            LiteAdapter.OnItemClickListener onItemClickListener,
+                            LiteAdapter.OnItemLongClickListener onItemLongClickListener) {
         this.mEmptyView = mEmptyView;
         this.mHerders = mHerders;
         this.mFooters = mFooters;
@@ -46,8 +49,8 @@ class ItemManager {
         this.mOnItemLongClickListener = onItemLongClickListener;
     }
 
-    static ItemManager create(LiteAdapter.Builder builder) {
-        return new ItemManager(builder.emptyView, builder.herders, builder.footers, builder.injectors,
+    static AdapterDelegate create(LiteAdapter.Builder builder) {
+        return new AdapterDelegate(builder.emptyView, builder.herders, builder.footers, builder.injectors,
                 builder.viewTypeLinker, builder.onItemClickListener, builder.onItemLongClickListener);
     }
 
@@ -55,7 +58,7 @@ class ItemManager {
         return mDataSet;
     }
 
-    public int adjustPosition(int position) {
+    int adjustPosition(int position) {
         if (isHeader(position)) {
             return position;
         } else if (isFooter(position)) {
@@ -86,15 +89,15 @@ class ItemManager {
         return mFooters != null && mFooters.size() > 0 && mFooters.get(viewType) != null;
     }
 
-    boolean isHeader(int position) {
+    private boolean isHeader(int position) {
         return mHerders != null && mHerders.size() > 0 && position >= 0 && position < mHerders.size();
     }
 
-    boolean isFooter(int position) {
+    private boolean isFooter(int position) {
         return mFooters != null && mFooters.size() > 0 && position >= mHerders.size() + mDataSet.size();
     }
 
-    boolean isEmptyViewEnable() {
+    private boolean isEmptyViewEnable() {
         return mEmptyView != null && mDataSet.size() == 0;
     }
 
@@ -196,6 +199,34 @@ class ItemManager {
             return null;
         }
         return mDataSet.get(position - mHerders.size());
+    }
+
+    void setFullSpanForGridView(RecyclerView recyclerView) {
+        RecyclerView.LayoutManager manager = recyclerView.getLayoutManager();
+        if (manager instanceof GridLayoutManager) {
+            final GridLayoutManager gridManager = ((GridLayoutManager) manager);
+            gridManager.setSpanSizeLookup(new GridLayoutManager.SpanSizeLookup() {
+                @Override
+                public int getSpanSize(int position) {
+                    return (isEmptyViewEnable()
+                            || isHeader(position)
+                            || isFooter(position))
+                            ? gridManager.getSpanCount() : 1;
+                }
+            });
+        }
+    }
+
+    void setFullSpanForStaggeredGridView(ViewHolder holder) {
+        ViewGroup.LayoutParams lp = holder.itemView.getLayoutParams();
+        if (lp != null && lp instanceof StaggeredGridLayoutManager.LayoutParams) {
+            if (isEmptyViewEnable()
+                    || isHeader(holder.getLayoutPosition())
+                    || isFooter(holder.getLayoutPosition())) {
+                StaggeredGridLayoutManager.LayoutParams p = (StaggeredGridLayoutManager.LayoutParams) lp;
+                p.setFullSpan(true);
+            }
+        }
     }
 
     private void setupItemClickListener(final ViewHolder viewHolder) {

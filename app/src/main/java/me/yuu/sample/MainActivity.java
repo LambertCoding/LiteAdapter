@@ -33,7 +33,8 @@ public class MainActivity extends AppCompatActivity {
         findViewById(R.id.btnInsert).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                adapter.addAll(2, data);
+//                adapter.addAll(2, data);
+                adapter.addDataToHead(new Setion());
             }
         });
 
@@ -100,7 +101,6 @@ public class MainActivity extends AppCompatActivity {
                 })
                 .create();
         recyclerView.setAdapter(adapter);
-
 
         refreshLayout = findViewById(R.id.refreshLayout);
         refreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
