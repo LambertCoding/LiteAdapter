@@ -3,6 +3,7 @@ package me.yuu.liteadapter.core;
 import android.content.Context;
 import android.support.annotation.LayoutRes;
 import android.support.annotation.NonNull;
+import android.support.v4.util.Preconditions;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.StaggeredGridLayoutManager;
@@ -24,14 +25,14 @@ import me.yuu.liteadapter.util.Utils;
  * @date 2018/1/12
  */
 @SuppressWarnings("all")
-public class LiteAdapter extends AbstractAbapter {
+public class LiteAdapter<T> extends AbstractAdapter<T> {
 
     public static final int VIEW_TYPE_EMPTY = -7061;
     public static final int VIEW_TYPE_HEADER_INDEX = -7060;
     public static final int VIEW_TYPE_FOOTER_INDEX = -8060;
 
-    private final SparseArray<View> mHerders;
-    private final SparseArray<View> mFooters;
+    private SparseArray<View> mHerders;
+    private SparseArray<View> mFooters;
     private final SparseArray<ViewInjector> mViewInjectors;
     private final ViewTypeLinker mViewTypeLinker;
     private final MoreLoader mMoreLoader;
@@ -44,7 +45,7 @@ public class LiteAdapter extends AbstractAbapter {
     private LiteAdapter(Builder builder) {
         this.mMoreLoader = builder.moreLoader;
         this.mEmptyView = builder.emptyView;
-        this.mHerders = builder.herders;
+        this.mHerders = builder.headers;
         this.mFooters = builder.footers;
         this.mViewTypeLinker = builder.viewTypeLinker;
         this.mViewInjectors = builder.injectors;
@@ -72,23 +73,28 @@ public class LiteAdapter extends AbstractAbapter {
     }
 
     private boolean isHeaderType(int viewType) {
-        return mHerders != null && mHerders.size() > 0 && mHerders.get(viewType) != null;
+        return getHeadersCount() > 0 && mHerders.get(viewType) != null;
     }
 
     private boolean isFooterType(int viewType) {
-        return mFooters != null && mFooters.size() > 0 && mFooters.get(viewType) != null;
+        return getFootersCount() > 0 && mFooters.get(viewType) != null;
     }
 
     private boolean isHeader(int position) {
-        return mHerders != null && mHerders.size() > 0 && position >= 0 && position < mHerders.size();
+        int headersCount = getHeadersCount();
+        return headersCount > 0 && position >= 0 && position < headersCount;
     }
 
     private boolean isFooter(int position) {
-        return mFooters != null && mFooters.size() > 0 && position >= mHerders.size() + mDataSet.size();
+        return getFootersCount() > 0 && position >= getHeadersCount() + mDataSet.size();
     }
 
     private boolean isEmptyViewEnable() {
-        return mEmptyView != null && mDataSet.size() == 0;
+        int itemCount = mDataSet.size() + getFootersCount() + getFootersCount();
+        if (hasAddLoadMoreFooter) {
+            itemCount -= 1;
+        }
+        return mEmptyView != null && itemCount == 0;
     }
 
     @Override
@@ -96,7 +102,7 @@ public class LiteAdapter extends AbstractAbapter {
         if (isEmptyViewEnable()) {
             return 1;
         }
-        return mDataSet.size() + mHerders.size() + mFooters.size();
+        return mDataSet.size() + getFootersCount() + getFootersCount();
     }
 
     @Override
@@ -110,7 +116,7 @@ public class LiteAdapter extends AbstractAbapter {
         }
 
         if (isFooter(position)) {
-            return mFooters.keyAt(position - mHerders.size() - mDataSet.size());
+            return mFooters.keyAt(position - getHeadersCount() - mDataSet.size());
         }
 
         return getFromInjector(position);
@@ -122,11 +128,10 @@ public class LiteAdapter extends AbstractAbapter {
         }
 
         if (mViewInjectors.size() > 1) {
-            if (mViewTypeLinker == null) {
-                throw new NullPointerException("Multiple view types are registered. You must set a ViewTypeInjector for LiteAdapter");
-            } else {
-                return mViewTypeLinker.viewType(getRealItem(position), position - mHerders.size());
-            }
+            Preconditions.checkNotNull(mViewTypeLinker,
+                    "Multiple view types are registered. You must set a ViewTypeInjector for LiteAdapter");
+
+            return mViewTypeLinker.viewType(getRealItem(position), position - getHeadersCount());
         } else {
             if (mViewTypeLinker != null) {
                 Log.i("LiteAdapter", "Single view type don't need ViewTypeLinker,Ignore!");
@@ -145,10 +150,10 @@ public class LiteAdapter extends AbstractAbapter {
             return new ViewHolder(mFooters.get(viewType));
         } else {
             ViewInjector injector = mViewInjectors.get(viewType);
-            if (injector == null) {
-                throw new NullPointerException("You haven't registered this viewType yet : " + viewType
-                        + ". Or you return the wrong value in the ViewTypeLinker.");
-            }
+
+            Preconditions.checkNotNull(injector, "You haven't registered this view type(" + viewType
+                    + ") yet . Or you return the wrong view type in ViewTypeLinker.");
+
             View itemView = LayoutInflater.from(parent.getContext())
                     .inflate(injector.getLayoutId(), parent, false);
             return new ViewHolder(itemView);
@@ -169,10 +174,9 @@ public class LiteAdapter extends AbstractAbapter {
         }
 
         ViewInjector injector = mViewInjectors.get(viewType);
-        if (injector == null) {
-            throw new NullPointerException("You haven't registered this view type(" + viewType
-                    + ") yet . Or you return the wrong view type  in ViewTypeLinker.");
-        }
+
+        Preconditions.checkNotNull(injector, "You haven't registered this view type(" + viewType
+                + ") yet . Or you return the wrong view type in ViewTypeLinker.");
 
         try {
             injector.bindData(holder, item, position - getHeadersCount());
@@ -194,7 +198,7 @@ public class LiteAdapter extends AbstractAbapter {
         if (isHeader(position) || isFooter(position)) {
             return null;
         }
-        return mDataSet.get(position - mHerders.size());
+        return mDataSet.get(position - getHeadersCount());
     }
 
     private void setupItemClickListener(final ViewHolder viewHolder) {
@@ -203,7 +207,7 @@ public class LiteAdapter extends AbstractAbapter {
             public void onClick(View v) {
                 if (mOnItemClickListener != null) {
                     int position = viewHolder.getLayoutPosition();
-                    mOnItemClickListener.onItemClick(position - mHerders.size(), getItem(position));
+                    mOnItemClickListener.onItemClick(position - getHeadersCount(), getItem(position));
                 }
             }
         });
@@ -215,7 +219,7 @@ public class LiteAdapter extends AbstractAbapter {
             public boolean onLongClick(View view) {
                 if (mOnItemLongClickListener != null) {
                     int position = viewHolder.getLayoutPosition();
-                    mOnItemLongClickListener.onItemLongClick(position - mHerders.size(), getItem(position));
+                    mOnItemLongClickListener.onItemLongClick(position - getHeadersCount(), getItem(position));
                 }
                 return true;
             }
@@ -242,6 +246,14 @@ public class LiteAdapter extends AbstractAbapter {
         if (mMoreLoader != null) {
             recyclerView.addOnScrollListener(mMoreLoader);
         }
+    }
+
+    @Override
+    public void onDetachedFromRecyclerView(RecyclerView recyclerView) {
+        if (mMoreLoader != null) {
+            recyclerView.removeOnScrollListener(mMoreLoader);
+        }
+        super.onDetachedFromRecyclerView(recyclerView);
     }
 
     @Override
@@ -283,10 +295,8 @@ public class LiteAdapter extends AbstractAbapter {
     }
 
     public void setLoadMoreEnable(boolean enable) {
-        if (mMoreLoader == null) {
-            throw new NullPointerException("MoreLoader == null, " +
-                    "You should call enableLoadMore when you build the LiteAdapter.");
-        }
+        Preconditions.checkNotNull(mMoreLoader, "MoreLoader == null, " +
+                "You should call enableLoadMore when you build the LiteAdapter.");
 
         mMoreLoader.setEnable(enable);
         if (enable) {
@@ -324,72 +334,71 @@ public class LiteAdapter extends AbstractAbapter {
         }
     }
 
-    public static class Builder {
+    public static class Builder<D> {
         public Context context;
         public View emptyView;
         public MoreLoader moreLoader;
         public ViewTypeLinker viewTypeLinker;
         public OnItemClickListener onItemClickListener;
         public OnItemLongClickListener onItemLongClickListener;
-        public final SparseArray<View> herders = new SparseArray<>();
-        public final SparseArray<View> footers = new SparseArray<>();
+        public SparseArray<View> headers;
+        public SparseArray<View> footers;
         public final SparseArray<ViewInjector> injectors = new SparseArray<>();
 
         public boolean hasAddLoadMoreFooter;
 
         public Builder(Context context) {
-            this.context = context;
+            this.context = Preconditions.checkNotNull(context);
         }
 
-        public Builder emptyView(View empty) {
-            if (emptyView != null) {
-                throw new IllegalStateException("You have already set a empty view.");
-            }
-            ViewGroup.LayoutParams params = new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
-                    ViewGroup.LayoutParams.MATCH_PARENT);
-            empty.setLayoutParams(params);
-            this.emptyView = empty;
-            return this;
-        }
-
-        public Builder emptyView(Context context, @LayoutRes int layoutId) {
+        public Builder<D> emptyView(@LayoutRes int layoutId) {
             return emptyView(LayoutInflater.from(context).inflate(layoutId, null));
         }
 
-        public Builder itemClickListener(@NonNull OnItemClickListener listener) {
-            this.onItemClickListener = listener;
+        public Builder<D> emptyView(View empty) {
+            Preconditions.checkArgument(emptyView == null, "You have already set a empty view.");
+            this.emptyView = Preconditions.checkNotNull(empty);
+
+            ViewGroup.LayoutParams params = new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
+                    ViewGroup.LayoutParams.MATCH_PARENT);
+            emptyView.setLayoutParams(params);
             return this;
         }
 
-        public Builder itemLongClickListener(@NonNull OnItemLongClickListener listener) {
-            this.onItemLongClickListener = listener;
+        public Builder<D> itemClickListener(@NonNull OnItemClickListener listener) {
+            this.onItemClickListener = Preconditions.checkNotNull(listener);
             return this;
         }
 
-        public Builder viewTypeLinker(@NonNull ViewTypeLinker linker) {
-            if (viewTypeLinker != null) {
-                throw new IllegalStateException("Only one ViewTypeLinker can be registered.");
+        public Builder<D> itemLongClickListener(@NonNull OnItemLongClickListener listener) {
+            this.onItemLongClickListener = Preconditions.checkNotNull(listener);
+            return this;
+        }
+
+        public Builder<D> viewTypeLinker(@NonNull ViewTypeLinker<D> linker) {
+            Preconditions.checkArgument(viewTypeLinker == null, "Only one ViewTypeLinker can be registered.");
+            this.viewTypeLinker = Preconditions.checkNotNull(linker);
+            return this;
+        }
+
+        public Builder<D> headerView(@NonNull View header) {
+            Preconditions.checkNotNull(header);
+            if (headers == null) {
+                headers = new SparseArray<>();
             }
-            this.viewTypeLinker = linker;
+            int headerType = VIEW_TYPE_HEADER_INDEX + headers.size();
+            headers.put(headerType, header);
             return this;
         }
 
-        public Builder headerView(@NonNull View header) {
-            if (header == null) {
-                throw new IllegalArgumentException("the header == null.");
-            }
-
-            int headerType = VIEW_TYPE_HEADER_INDEX + herders.size();
-            herders.put(headerType, header);
-            return this;
-        }
-
-        public Builder footerView(@NonNull View footer) {
-            if (footer == null) {
-                throw new IllegalArgumentException("the footer == null.");
+        public Builder<D> footerView(@NonNull View footer) {
+            Preconditions.checkNotNull(footer);
+            if (footers == null) {
+                footers = new SparseArray<>();
             }
 
             if (hasAddLoadMoreFooter) {
+                // Make sure that loadMoreFooterView is always the last footer.
                 int key = footers.keyAt(footers.size() - 1);
                 View loadMoreFooter = footers.valueAt(footers.size() - 1);
 
@@ -398,7 +407,6 @@ public class LiteAdapter extends AbstractAbapter {
                 int footerType = VIEW_TYPE_FOOTER_INDEX + footers.size();
                 footers.put(footerType, loadMoreFooter);
             } else {
-
                 int footerType = VIEW_TYPE_FOOTER_INDEX + footers.size();
                 footers.put(footerType, footer);
             }
@@ -406,34 +414,32 @@ public class LiteAdapter extends AbstractAbapter {
             return this;
         }
 
-        public Builder enableLoadMore(@NonNull MoreLoader.LoadMoreListener loadMoreListener) {
+        public Builder<D> enableLoadMore(@NonNull MoreLoader.LoadMoreListener loadMoreListener) {
             return enableLoadMore(loadMoreListener, new DefaultLoadMoreFooter(context));
         }
 
-        public Builder enableLoadMore(@NonNull MoreLoader.LoadMoreListener loadMoreListener, @NonNull ILoadMoreFooter loadMoreFooter) {
-            if (this.moreLoader != null) {
-                throw new IllegalStateException("You have already called enableLoadMore, Don't call again!");
-            }
+        public Builder<D> enableLoadMore(@NonNull MoreLoader.LoadMoreListener loadMoreListener, @NonNull ILoadMoreFooter loadMoreFooter) {
+            Preconditions.checkArgument(this.moreLoader == null,
+                    "You have already called enableLoadMore, Don't call again!");
+            Preconditions.checkNotNull(loadMoreListener);
+            Preconditions.checkNotNull(loadMoreFooter);
+
             footerView(loadMoreFooter.getView());
             this.hasAddLoadMoreFooter = true;
             this.moreLoader = new MoreLoader(loadMoreListener, loadMoreFooter);
             return this;
         }
 
-        public <T> Builder register(int viewType, @NonNull ViewInjector<T> injector) {
-            if (injector == null) {
-                throw new IllegalArgumentException("the injector == null.");
-            }
-            if (injectors.get(viewType) == null) {
-                injectors.put(viewType, injector);
-            } else {
-                throw new IllegalArgumentException("You have registered this viewType:" + viewType);
-            }
+        public <T> Builder<D> register(int viewType, @NonNull ViewInjector<T> injector) {
+            Preconditions.checkNotNull(injector);
+            Preconditions.checkState(injectors.get(viewType) == null,
+                    "You have already registered this viewType:" + viewType);
+            injectors.put(viewType, injector);
             return this;
         }
 
-        public LiteAdapter create() {
-            return new LiteAdapter(this);
+        public LiteAdapter<D> create() {
+            return new LiteAdapter<D>(this);
         }
     }
 }

@@ -11,11 +11,12 @@ import java.util.List;
  * @author yu
  * @date 2018/1/14
  */
-public abstract class AbstractAbapter extends RecyclerView.Adapter<ViewHolder> implements DataOperator {
+public abstract class AbstractAdapter<T> extends RecyclerView.Adapter<ViewHolder> implements DataOperator<T> {
 
-    protected final List mDataSet = new ArrayList<>();
+    protected final List<T> mDataSet = new ArrayList<>();
 
     public abstract int getHeadersCount();
+
     public abstract int getFootersCount();
 
     public List getDataSet() {
@@ -23,7 +24,7 @@ public abstract class AbstractAbapter extends RecyclerView.Adapter<ViewHolder> i
     }
 
     @Override
-    public void addData(@NonNull Object item) {
+    public void addData(@NonNull T item) {
         if (item != null) {
             int position = getHeadersCount() + mDataSet.size();
             mDataSet.add(item);
@@ -32,7 +33,7 @@ public abstract class AbstractAbapter extends RecyclerView.Adapter<ViewHolder> i
     }
 
     @Override
-    public void addData(@IntRange(from = 0) int position, @NonNull Object item) {
+    public void addData(@IntRange(from = 0) int position, @NonNull T item) {
         if (item != null) {
             mDataSet.add(position, item);
             notifyItemInserted(getHeadersCount() + position);
@@ -40,12 +41,12 @@ public abstract class AbstractAbapter extends RecyclerView.Adapter<ViewHolder> i
     }
 
     @Override
-    public void addDataToHead(@NonNull Object item) {
+    public void addDataToHead(@NonNull T item) {
         addData(0, item);
     }
 
     @Override
-    public void addAll(@NonNull List items) {
+    public void addAll(@NonNull List<T> items) {
         if (items != null && !items.isEmpty()) {
             int startPosition = getHeadersCount() + mDataSet.size();
             mDataSet.addAll(items);
@@ -54,7 +55,7 @@ public abstract class AbstractAbapter extends RecyclerView.Adapter<ViewHolder> i
     }
 
     @Override
-    public void addAll(@IntRange(from = 0) int position, List items) {
+    public void addAll(@IntRange(from = 0) int position, List<T> items) {
         if (items != null && !items.isEmpty()) {
             int startPosition = getHeadersCount() + position;
             mDataSet.addAll(items);
@@ -63,7 +64,7 @@ public abstract class AbstractAbapter extends RecyclerView.Adapter<ViewHolder> i
     }
 
     @Override
-    public void addAllToHead(@NonNull List items) {
+    public void addAllToHead(@NonNull List<T> items) {
         addAll(0, items);
     }
 
@@ -84,7 +85,7 @@ public abstract class AbstractAbapter extends RecyclerView.Adapter<ViewHolder> i
     }
 
     @Override
-    public void setNewData(List items) {
+    public void setNewData(List<T> items) {
         mDataSet.clear();
         if (items != null && !items.isEmpty()) {
             mDataSet.addAll(items);
@@ -93,12 +94,12 @@ public abstract class AbstractAbapter extends RecyclerView.Adapter<ViewHolder> i
     }
 
     @Override
-    public Object getItem(@IntRange(from = 0) int position) {
+    public T getItem(@IntRange(from = 0) int position) {
         return mDataSet.get(position);
     }
 
     @Override
-    public void modify(@IntRange(from = 0) int position, Object newData) {
+    public void modify(@IntRange(from = 0) int position, T newData) {
         if (newData == null) {
             return;
         }
@@ -107,7 +108,7 @@ public abstract class AbstractAbapter extends RecyclerView.Adapter<ViewHolder> i
     }
 
     @Override
-    public void modify(@IntRange(from = 0) int position, Action action) {
+    public void modify(@IntRange(from = 0) int position, Action<T> action) {
         action.doAction(mDataSet.get(position));
         notifyItemChanged(getHeadersCount() + position);
     }

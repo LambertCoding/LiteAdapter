@@ -23,7 +23,7 @@ public class MainActivity extends AppCompatActivity {
 
     private RecyclerView recyclerView;
     private SwipeRefreshLayout refreshLayout;
-    private LiteAdapter adapter;
+    private LiteAdapter<Object> adapter;
     private List<Object> data = new ArrayList<>();
     private Handler handler = new Handler();
 
@@ -36,9 +36,7 @@ public class MainActivity extends AppCompatActivity {
         findViewById(R.id.btnInsert).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-//                adapter.addAll(2, data);
-//                adapter.addDataToHead(new Section());
-                adapter.setLoadMoreEnable(loadMoreEnable = !loadMoreEnable);
+                adapter.addAll(0, data);
             }
         });
 
@@ -47,7 +45,7 @@ public class MainActivity extends AppCompatActivity {
 //        recyclerView.setLayoutManager(new GridLayoutManager(this, 2));
         recyclerView.setLayoutManager(new StaggeredGridLayoutManager(2, StaggeredGridLayoutManager.VERTICAL));
 
-        adapter = new LiteAdapter.Builder(this)
+        adapter = new LiteAdapter.Builder<>(this)
                 .register(0, new ViewInjector<User>(R.layout.item_normal) {
                     @Override
                     public void bindData(ViewHolder holder, User item, int position) {
@@ -66,7 +64,7 @@ public class MainActivity extends AppCompatActivity {
 
                     }
                 })
-                .viewTypeLinker(new ViewTypeLinker() {
+                .viewTypeLinker(new ViewTypeLinker<Object>() {
                     @Override
                     public int viewType(Object item, int position) {
                         if (item instanceof User) {
@@ -80,7 +78,7 @@ public class MainActivity extends AppCompatActivity {
                         }
                     }
                 })
-                .emptyView(this, R.layout.empty_view)
+                .emptyView(R.layout.empty_view)
                 .headerView(View.inflate(this, R.layout.item_head1, null))
                 .headerView(View.inflate(this, R.layout.item_head2, null))
                 .footerView(View.inflate(this, R.layout.item_footer1, null))
