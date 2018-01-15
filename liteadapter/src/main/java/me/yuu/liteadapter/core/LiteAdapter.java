@@ -13,6 +13,8 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
+import java.lang.ref.SoftReference;
+
 import me.yuu.liteadapter.loadmore.DefaultLoadMoreFooter;
 import me.yuu.liteadapter.loadmore.ILoadMoreFooter;
 import me.yuu.liteadapter.loadmore.MoreLoader;
@@ -31,16 +33,16 @@ public class LiteAdapter<T> extends AbstractAdapter<T> {
     public static final int VIEW_TYPE_HEADER_INDEX = -7060;
     public static final int VIEW_TYPE_FOOTER_INDEX = -8060;
 
-    private SparseArray<View> mHerders;
-    private SparseArray<View> mFooters;
+    private SoftReference<RecyclerView> mRecyclerView;
+
+    private final SparseArray<View> mHerders;
+    private final SparseArray<View> mFooters;
     private final SparseArray<ViewInjector> mViewInjectors;
     private final ViewTypeLinker mViewTypeLinker;
     private final MoreLoader mMoreLoader;
     private final View mEmptyView;
     private final LiteAdapter.OnItemClickListener mOnItemClickListener;
     private final LiteAdapter.OnItemLongClickListener mOnItemLongClickListener;
-
-    private boolean hasAddLoadMoreFooter;
 
     private LiteAdapter(Builder builder) {
         this.mMoreLoader = builder.moreLoader;
@@ -51,7 +53,6 @@ public class LiteAdapter<T> extends AbstractAdapter<T> {
         this.mViewInjectors = builder.injectors;
         this.mOnItemClickListener = builder.onItemClickListener;
         this.mOnItemLongClickListener = builder.onItemLongClickListener;
-        this.hasAddLoadMoreFooter = builder.hasAddLoadMoreFooter;
     }
 
     @Override
@@ -61,7 +62,16 @@ public class LiteAdapter<T> extends AbstractAdapter<T> {
 
     @Override
     public int getFootersCount() {
-        return mFooters == null ? 0 : mFooters.size();
+        if (mFooters == null) {
+            return 0;
+        } else {
+            if (mMoreLoader != null
+                    && !mMoreLoader.isLoadMoreEnable()
+                    && mMoreLoader.isAddLoadMoreFooter()) {
+                return mFooters.size() - 1;
+            }
+        }
+        return mFooters.size();
     }
 
     /**
@@ -73,25 +83,27 @@ public class LiteAdapter<T> extends AbstractAdapter<T> {
     }
 
     private boolean isHeaderType(int viewType) {
-        return getHeadersCount() > 0 && mHerders.get(viewType) != null;
+        return mHerders.size() > 0 && mHerders.get(viewType) != null;
     }
 
     private boolean isFooterType(int viewType) {
-        return getFootersCount() > 0 && mFooters.get(viewType) != null;
+        return mFooters.size() > 0 && mFooters.get(viewType) != null;
     }
 
     private boolean isHeader(int position) {
-        int headersCount = getHeadersCount();
+        int headersCount = mHerders.size();
         return headersCount > 0 && position >= 0 && position < headersCount;
     }
 
     private boolean isFooter(int position) {
-        return getFootersCount() > 0 && position >= getHeadersCount() + mDataSet.size();
+        return mFooters.size() > 0 && position >= mHerders.size() + mDataSet.size();
     }
 
     private boolean isEmptyViewEnable() {
-        int itemCount = mDataSet.size() + getFootersCount() + getFootersCount();
-        if (hasAddLoadMoreFooter) {
+        // Disable the empty view if have header view or footer view.
+        // not included loadMoreFooter view
+        int itemCount = mDataSet.size() + mHerders.size() + mFooters.size();
+        if (mMoreLoader != null && mMoreLoader.isAddLoadMoreFooter()) {
             itemCount -= 1;
         }
         return mEmptyView != null && itemCount == 0;
@@ -102,7 +114,13 @@ public class LiteAdapter<T> extends AbstractAdapter<T> {
         if (isEmptyViewEnable()) {
             return 1;
         }
-        return mDataSet.size() + getFootersCount() + getFootersCount();
+        int itemCount = mDataSet.size() + mHerders.size() + mFooters.size();
+        if (mMoreLoader != null
+                && !mMoreLoader.isLoadMoreEnable()
+                && mMoreLoader.isAddLoadMoreFooter()) {
+            itemCount -= 1;
+        }
+        return itemCount;
     }
 
     @Override
@@ -116,7 +134,7 @@ public class LiteAdapter<T> extends AbstractAdapter<T> {
         }
 
         if (isFooter(position)) {
-            return mFooters.keyAt(position - getHeadersCount() - mDataSet.size());
+            return mFooters.keyAt(position - mHerders.size() - mDataSet.size());
         }
 
         return getFromInjector(position);
@@ -131,7 +149,7 @@ public class LiteAdapter<T> extends AbstractAdapter<T> {
             Preconditions.checkNotNull(mViewTypeLinker,
                     "Multiple view types are registered. You must set a ViewTypeInjector for LiteAdapter");
 
-            return mViewTypeLinker.viewType(getRealItem(position), position - getHeadersCount());
+            return mViewTypeLinker.viewType(getRealItem(position), position - mHerders.size());
         } else {
             if (mViewTypeLinker != null) {
                 Log.i("LiteAdapter", "Single view type don't need ViewTypeLinker,Ignore!");
@@ -179,14 +197,14 @@ public class LiteAdapter<T> extends AbstractAdapter<T> {
                 + ") yet . Or you return the wrong view type in ViewTypeLinker.");
 
         try {
-            injector.bindData(holder, item, position - getHeadersCount());
+            injector.bindData(holder, item, position - mHerders.size());
         } catch (ClassCastException e) {
             // 发生这个异常是由于使用多种实体类型的时候,ViewTypeLinker返回了错误的ViewType
             // 比如：注册了一个类型111，实体类型是User：adapter.register(111, new ViewInjector<User>(R.layout.item_user)
             //      注册了一个类型222，实体类型是Student：adapter.register(222, new ViewInjector<Student>(R.layout.item_student)
             // 但是在ViewTypeLinker中，获取到的实体是User，但是返回的条目类型是222，就会出现这个异常；
             throw new IllegalStateException("Returned the wrong view type in ViewTypeLinker."
-                    + "position = " + (position - getHeadersCount()) + " ViewType = " + viewType
+                    + "position = " + (position - mHerders.size()) + " ViewType = " + viewType
                     + "item class = " + item.getClass().getName());
         }
 
@@ -198,7 +216,7 @@ public class LiteAdapter<T> extends AbstractAdapter<T> {
         if (isHeader(position) || isFooter(position)) {
             return null;
         }
-        return mDataSet.get(position - getHeadersCount());
+        return mDataSet.get(position - mHerders.size());
     }
 
     private void setupItemClickListener(final ViewHolder viewHolder) {
@@ -207,7 +225,7 @@ public class LiteAdapter<T> extends AbstractAdapter<T> {
             public void onClick(View v) {
                 if (mOnItemClickListener != null) {
                     int position = viewHolder.getLayoutPosition();
-                    mOnItemClickListener.onItemClick(position - getHeadersCount(), getItem(position));
+                    mOnItemClickListener.onItemClick(position - mHerders.size(), getRealItem(position));
                 }
             }
         });
@@ -219,7 +237,7 @@ public class LiteAdapter<T> extends AbstractAdapter<T> {
             public boolean onLongClick(View view) {
                 if (mOnItemLongClickListener != null) {
                     int position = viewHolder.getLayoutPosition();
-                    mOnItemLongClickListener.onItemLongClick(position - getHeadersCount(), getItem(position));
+                    mOnItemLongClickListener.onItemLongClick(position - mHerders.size(), getRealItem(position));
                 }
                 return true;
             }
@@ -229,6 +247,10 @@ public class LiteAdapter<T> extends AbstractAdapter<T> {
     @Override
     public void onAttachedToRecyclerView(RecyclerView recyclerView) {
         super.onAttachedToRecyclerView(recyclerView);
+        if (mRecyclerView == null) {
+            mRecyclerView = new SoftReference<>(recyclerView);
+        }
+
         RecyclerView.LayoutManager manager = recyclerView.getLayoutManager();
         if (manager instanceof GridLayoutManager) {
             final GridLayoutManager gridManager = ((GridLayoutManager) manager);
@@ -272,6 +294,15 @@ public class LiteAdapter<T> extends AbstractAdapter<T> {
 
     ///////////////////////////////////LoadMore///////////////////////////////////
 
+    @Override
+    protected void beforeSetNewData() {
+        // setNewData后，notifyDataSetChanged之前回调
+        // 设置数据后判断是否占满一页，如果不满一页就不开启load more，反之则开启
+        if (mMoreLoader != null && mRecyclerView != null) {
+            disableLoadMoreIfNotFullPage(mRecyclerView.get());
+        }
+    }
+
     public void disableLoadMoreIfNotFullPage(RecyclerView recyclerView) {
         if (recyclerView == null) {
             return;
@@ -298,22 +329,21 @@ public class LiteAdapter<T> extends AbstractAdapter<T> {
         Preconditions.checkNotNull(mMoreLoader, "MoreLoader == null, " +
                 "You should call enableLoadMore when you build the LiteAdapter.");
 
-        mMoreLoader.setEnable(enable);
+        mMoreLoader.setLoadMoreEnable(enable);
         if (enable) {
-            if (!hasAddLoadMoreFooter) {
+            if (!mMoreLoader.isAddLoadMoreFooter()) {
                 int footerType = VIEW_TYPE_FOOTER_INDEX + mFooters.size();
                 mFooters.put(footerType, mMoreLoader.getLoadMoreFooterView());
-                hasAddLoadMoreFooter = true;
-                notifyDataSetChanged();
+                mMoreLoader.setAddLoadMoreFooter(true);
             }
         } else {
             // load more footer is aways the last one, remove it.
-            if (hasAddLoadMoreFooter) {
+            if (mMoreLoader.isAddLoadMoreFooter()) {
                 mFooters.removeAt(mFooters.size() - 1);
-                hasAddLoadMoreFooter = false;
-                notifyDataSetChanged();
+                mMoreLoader.setAddLoadMoreFooter(false);
             }
         }
+        notifyDataSetChanged();
     }
 
     public void loadMoreCompleted() {
@@ -341,11 +371,9 @@ public class LiteAdapter<T> extends AbstractAdapter<T> {
         public ViewTypeLinker viewTypeLinker;
         public OnItemClickListener onItemClickListener;
         public OnItemLongClickListener onItemLongClickListener;
-        public SparseArray<View> headers;
-        public SparseArray<View> footers;
+        public final SparseArray<View> headers = new SparseArray<>();
+        public final SparseArray<View> footers = new SparseArray<>();
         public final SparseArray<ViewInjector> injectors = new SparseArray<>();
-
-        public boolean hasAddLoadMoreFooter;
 
         public Builder(Context context) {
             this.context = Preconditions.checkNotNull(context);
@@ -383,21 +411,17 @@ public class LiteAdapter<T> extends AbstractAdapter<T> {
 
         public Builder<D> headerView(@NonNull View header) {
             Preconditions.checkNotNull(header);
-            if (headers == null) {
-                headers = new SparseArray<>();
-            }
+
             int headerType = VIEW_TYPE_HEADER_INDEX + headers.size();
             headers.put(headerType, header);
+
             return this;
         }
 
         public Builder<D> footerView(@NonNull View footer) {
             Preconditions.checkNotNull(footer);
-            if (footers == null) {
-                footers = new SparseArray<>();
-            }
 
-            if (hasAddLoadMoreFooter) {
+            if (moreLoader != null && moreLoader.isAddLoadMoreFooter()) {
                 // Make sure that loadMoreFooterView is always the last footer.
                 int key = footers.keyAt(footers.size() - 1);
                 View loadMoreFooter = footers.valueAt(footers.size() - 1);
@@ -425,8 +449,8 @@ public class LiteAdapter<T> extends AbstractAdapter<T> {
             Preconditions.checkNotNull(loadMoreFooter);
 
             footerView(loadMoreFooter.getView());
-            this.hasAddLoadMoreFooter = true;
             this.moreLoader = new MoreLoader(loadMoreListener, loadMoreFooter);
+            this.moreLoader.setAddLoadMoreFooter(true);
             return this;
         }
 

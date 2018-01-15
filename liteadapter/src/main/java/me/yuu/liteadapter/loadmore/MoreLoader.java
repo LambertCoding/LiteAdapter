@@ -11,7 +11,8 @@ import me.yuu.liteadapter.util.Utils;
  */
 public class MoreLoader extends RecyclerView.OnScrollListener {
 
-    private boolean mLoadMoreSwitch;
+    private boolean isLoadMoreEnable;
+    private boolean isAddLoadMoreFooter;
     private LoadMoreListener mLoadMoreListener;
     private ILoadMoreFooter mLoadMoreFooter;
 
@@ -29,12 +30,20 @@ public class MoreLoader extends RecyclerView.OnScrollListener {
         });
     }
 
-    public boolean isLoadMoreEnable() {
-        return mLoadMoreSwitch;
+    public boolean isAddLoadMoreFooter() {
+        return isAddLoadMoreFooter;
     }
 
-    public void setEnable(boolean enable) {
-        this.mLoadMoreSwitch = enable;
+    public void setAddLoadMoreFooter(boolean addLoadMoreFooter) {
+        isAddLoadMoreFooter = addLoadMoreFooter;
+    }
+
+    public boolean isLoadMoreEnable() {
+        return isLoadMoreEnable;
+    }
+
+    public void setLoadMoreEnable(boolean enable) {
+        this.isLoadMoreEnable = enable;
     }
 
     public View getLoadMoreFooterView() {
@@ -56,7 +65,7 @@ public class MoreLoader extends RecyclerView.OnScrollListener {
     @Override
     public void onScrollStateChanged(RecyclerView recyclerView, int newState) {
         super.onScrollStateChanged(recyclerView, newState);
-        if (!mLoadMoreSwitch) {
+        if (!isLoadMoreEnable) {
             return;
         }
         switch (newState) {

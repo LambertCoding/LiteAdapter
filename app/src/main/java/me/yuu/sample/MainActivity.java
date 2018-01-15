@@ -27,8 +27,6 @@ public class MainActivity extends AppCompatActivity {
     private List<Object> data = new ArrayList<>();
     private Handler handler = new Handler();
 
-    boolean loadMoreEnable = true;
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -119,7 +117,6 @@ public class MainActivity extends AppCompatActivity {
             public void run() {
                 adapter.setNewData(data);
                 refreshLayout.setRefreshing(false);
-                adapter.disableLoadMoreIfNotFullPage(recyclerView);
             }
         }, 1000);
     }
@@ -148,6 +145,30 @@ public class MainActivity extends AppCompatActivity {
         data.add(new Section());
         data.add(new Section());
         data.add(new User());
+        data.add(new Section());
+        data.add(new User());
+        data.add(new Section());
+        data.add(new Section());
+        data.add(new Section());
+        data.add(new Section());
+        data.add(new User());
+        data.add(new Section());
+        data.add(new User());
+        data.add(new Section());
+        data.add(new Section());
+        data.add(new Section());
+        data.add(new Section());
+        data.add(new User());
+        data.add(new Section());
+        data.add(new User());
+        data.add(new Section());
+        data.add(new Section());
+        data.add(new Section());
+        data.add(new Section());
+        data.add(new User());
+        data.add(new Section());
+        data.add(new User());
+        data.add(new Section());
         data.add(new Section());
     }
 }

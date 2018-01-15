@@ -14,13 +14,9 @@ public interface DataOperator<D> {
 
     void addData(int position, D item);
 
-    void addDataToHead(D item);
-
     void addAll(List<D> items);
 
     void addAll(int position, List<D> items);
-
-    void addAllToHead(List<D> items);
 
     void remove(int position);
 
