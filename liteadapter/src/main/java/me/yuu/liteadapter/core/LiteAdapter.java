@@ -212,7 +212,7 @@ public class LiteAdapter<T> extends AbstractAdapter<T> {
         setupItemLongClickListener(holder);
     }
 
-    private Object getRealItem(int position) {
+    public T getRealItem(int position) {
         if (isHeader(position) || isFooter(position)) {
             return null;
         }
@@ -418,6 +418,11 @@ public class LiteAdapter<T> extends AbstractAdapter<T> {
             return this;
         }
 
+        public Builder<D> headerView(@LayoutRes int headerLayout) {
+            headerView(LayoutInflater.from(context).inflate(headerLayout, null));
+            return this;
+        }
+
         public Builder<D> footerView(@NonNull View footer) {
             Preconditions.checkNotNull(footer);
 
@@ -435,6 +440,11 @@ public class LiteAdapter<T> extends AbstractAdapter<T> {
                 footers.put(footerType, footer);
             }
 
+            return this;
+        }
+
+        public Builder<D> footerView(@LayoutRes int footerLayout) {
+            footerView(LayoutInflater.from(context).inflate(footerLayout, null));
             return this;
         }
 

@@ -4,8 +4,8 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.support.v7.widget.StaggeredGridLayoutManager;
 import android.util.Log;
 import android.view.View;
 import android.widget.Toast;
@@ -23,8 +23,8 @@ public class MainActivity extends AppCompatActivity {
 
     private RecyclerView recyclerView;
     private SwipeRefreshLayout refreshLayout;
-    private LiteAdapter<Object> adapter;
-    private List<Object> data = new ArrayList<>();
+    private LiteAdapter<Girl> adapter;
+    private List<Girl> data = new ArrayList<>();
     private Handler handler = new Handler();
 
     @Override
@@ -39,48 +39,37 @@ public class MainActivity extends AppCompatActivity {
         });
 
         recyclerView = findViewById(R.id.recyclerView);
-//        recyclerView.setLayoutManager(new LinearLayoutManager(this));
-//        recyclerView.setLayoutManager(new GridLayoutManager(this, 2));
-        recyclerView.setLayoutManager(new StaggeredGridLayoutManager(2, StaggeredGridLayoutManager.VERTICAL));
+        final GridLayoutManager layoutManager = new GridLayoutManager(this, 2);
+        layoutManager.setSpanSizeLookup(new GridLayoutManager.SpanSizeLookup() {
+            @Override
+            public int getSpanSize(int position) {
+                return adapter.getRealItem(position).isSection() ? layoutManager.getSpanCount() : 1;
+            }
+        });
+        recyclerView.setLayoutManager(new GridLayoutManager(this, 2));
 
-        adapter = new LiteAdapter.Builder<>(this)
-                .register(0, new ViewInjector<User>(R.layout.item_normal) {
+        adapter = new LiteAdapter.Builder<Girl>(this)
+                .register(0, new ViewInjector<Girl>(R.layout.item_normal) {
                     @Override
-                    public void bindData(ViewHolder holder, User item, int position) {
-
-                    }
-                })
-                .register(1, new ViewInjector<User>(R.layout.item_yellow) {
-                    @Override
-                    public void bindData(ViewHolder holder, User item, int position) {
-
-                    }
-                })
-                .register(2, new ViewInjector<Section>(R.layout.item_gray) {
-                    @Override
-                    public void bindData(ViewHolder holder, Section item, int position) {
+                    public void bindData(ViewHolder holder, Girl item, int position) {
 
                     }
                 })
-                .viewTypeLinker(new ViewTypeLinker<Object>() {
+                .register(1, new ViewInjector<Girl>(R.layout.item_big) {
                     @Override
-                    public int viewType(Object item, int position) {
-                        if (item instanceof User) {
-                            if (position % 2 == 0) {
-                                return 0;
-                            } else {
-                                return 1;
-                            }
-                        } else {
-                            return 2;
-                        }
+                    public void bindData(ViewHolder holder, Girl item, int position) {
+
+                    }
+                })
+                .viewTypeLinker(new ViewTypeLinker<Girl>() {
+                    @Override
+                    public int viewType(Girl item, int position) {
+                        return 0;
                     }
                 })
                 .emptyView(R.layout.empty_view)
-                .headerView(View.inflate(this, R.layout.item_head1, null))
-                .headerView(View.inflate(this, R.layout.item_head2, null))
-                .footerView(View.inflate(this, R.layout.item_footer1, null))
-                .footerView(View.inflate(this, R.layout.item_footer2, null))
+                .headerView(R.layout.item_header)
+                .footerView(R.layout.item_footer)
                 .enableLoadMore(new MoreLoader.LoadMoreListener() {
                     @Override
                     public void onLoadMore() {
@@ -90,7 +79,8 @@ public class MainActivity extends AppCompatActivity {
                 .itemClickListener(new LiteAdapter.OnItemClickListener() {
                     @Override
                     public void onItemClick(int position, Object item) {
-                        Toast.makeText(MainActivity.this, item.getClass().getName() + "::" + position, Toast.LENGTH_SHORT).show();
+                        Toast.makeText(MainActivity.this,
+                                "click position : " + position, Toast.LENGTH_SHORT).show();
                     }
                 })
                 .itemLongClickListener(new LiteAdapter.OnItemLongClickListener() {
@@ -141,34 +131,20 @@ public class MainActivity extends AppCompatActivity {
     }
 
     {
-        data.add(new User());
-        data.add(new Section());
-        data.add(new Section());
-        data.add(new User());
-        data.add(new Section());
-        data.add(new User());
-        data.add(new Section());
-        data.add(new Section());
-        data.add(new Section());
-        data.add(new Section());
-        data.add(new User());
-        data.add(new Section());
-        data.add(new User());
-        data.add(new Section());
-        data.add(new Section());
-        data.add(new Section());
-        data.add(new Section());
-        data.add(new User());
-        data.add(new Section());
-        data.add(new User());
-        data.add(new Section());
-        data.add(new Section());
-        data.add(new Section());
-        data.add(new Section());
-        data.add(new User());
-        data.add(new Section());
-        data.add(new User());
-        data.add(new Section());
-        data.add(new Section());
+        data.add(Girl.createItem("qwe", R.mipmap.ic_launcher));
+        data.add(Girl.createItem("qwe", R.mipmap.ic_launcher));
+        data.add(Girl.createItem("qwe", R.mipmap.ic_launcher));
+        data.add(Girl.createItem("qwe", R.mipmap.ic_launcher));
+        data.add(Girl.createItem("qwe", R.mipmap.ic_launcher));
+        data.add(Girl.createItem("qwe", R.mipmap.ic_launcher));
+        data.add(Girl.createItem("qwe", R.mipmap.ic_launcher));
+        data.add(Girl.createItem("qwe", R.mipmap.ic_launcher));
+        data.add(Girl.createItem("qwe", R.mipmap.ic_launcher));
+        data.add(Girl.createItem("qwe", R.mipmap.ic_launcher));
+        data.add(Girl.createItem("qwe", R.mipmap.ic_launcher));
+        data.add(Girl.createItem("qwe", R.mipmap.ic_launcher));
+        data.add(Girl.createItem("qwe", R.mipmap.ic_launcher));
+        data.add(Girl.createItem("qwe", R.mipmap.ic_launcher));
+        data.add(Girl.createItem("qwe", R.mipmap.ic_launcher));
     }
 }
