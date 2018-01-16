@@ -146,5 +146,6 @@ public class MainActivity extends AppCompatActivity {
         data.add(Girl.createItem("qwe", R.mipmap.ic_launcher));
         data.add(Girl.createItem("qwe", R.mipmap.ic_launcher));
         data.add(Girl.createItem("qwe", R.mipmap.ic_launcher));
+        data.add(Girl.createItem("qwe", R.mipmap.ic_launcher));
     }
 }

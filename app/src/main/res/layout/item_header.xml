@@ -6,9 +6,11 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content">
 
-    <ImageView
-        android:id="@+id/ivHeader"
+    <TextView
         android:layout_width="match_parent"
-        android:layout_height="160dp" />
+        android:layout_height="160dp"
+        android:background="#0cc"
+        android:gravity="center"
+        android:text="头布局" />
 
 </FrameLayout>

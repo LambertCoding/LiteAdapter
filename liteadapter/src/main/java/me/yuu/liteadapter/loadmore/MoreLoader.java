@@ -12,7 +12,6 @@ import me.yuu.liteadapter.util.Utils;
 public class MoreLoader extends RecyclerView.OnScrollListener {
 
     private boolean isLoadMoreEnable;
-    private boolean isAddLoadMoreFooter;
     private LoadMoreListener mLoadMoreListener;
     private ILoadMoreFooter mLoadMoreFooter;
 
@@ -28,14 +27,6 @@ public class MoreLoader extends RecyclerView.OnScrollListener {
                 }
             }
         });
-    }
-
-    public boolean isAddLoadMoreFooter() {
-        return isAddLoadMoreFooter;
-    }
-
-    public void setAddLoadMoreFooter(boolean addLoadMoreFooter) {
-        isAddLoadMoreFooter = addLoadMoreFooter;
     }
 
     public boolean isLoadMoreEnable() {
