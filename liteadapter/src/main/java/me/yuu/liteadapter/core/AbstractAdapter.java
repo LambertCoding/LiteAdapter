@@ -15,60 +15,25 @@ public abstract class AbstractAdapter<T> extends RecyclerView.Adapter<ViewHolder
 
     protected final List<T> mDataSet = new ArrayList<>();
 
-    public abstract int getHeadersCount();
-
-    public abstract int getFootersCount();
-
     protected abstract void beforeSetNewData();
+
+    /**
+     * 当有Header view时，修改数据并进行定向刷新，需要修正角标
+     *
+     * @param position position
+     * @return position + headerViews.size
+     */
+    protected int adjustNotifyPosition(int position) {
+        return position;
+    }
 
     public List getDataSet() {
         return mDataSet;
     }
 
     @Override
-    public void addData(@NonNull T item) {
-        int position = getHeadersCount() + mDataSet.size();
-        mDataSet.add(item);
-        notifyItemInserted(position);
-    }
-
-    @Override
-    public void addData(@IntRange(from = 0) int position, @NonNull T item) {
-        mDataSet.add(position, item);
-        notifyItemInserted(position + getHeadersCount());
-    }
-
-    @Override
-    public void addAll(@NonNull List<T> items) {
-        if (!items.isEmpty()) {
-            int startPosition = getHeadersCount() + mDataSet.size();
-            mDataSet.addAll(items);
-            notifyItemRangeInserted(startPosition, items.size());
-        }
-    }
-
-    @Override
-    public void addAll(@IntRange(from = 0) int position, @NonNull List<T> items) {
-        if (!items.isEmpty()) {
-            mDataSet.addAll(items);
-            notifyItemRangeInserted(getHeadersCount() + position, items.size());
-        }
-    }
-
-    @Override
-    public void remove(@IntRange(from = 0) int position) {
-        mDataSet.remove(position);
-        if (mDataSet.isEmpty()) {
-            notifyDataSetChanged();
-        } else {
-            notifyItemRemoved(getHeadersCount() + position);
-        }
-    }
-
-    @Override
-    public void clear() {
-        mDataSet.clear();
-        notifyDataSetChanged();
+    public T getItem(@IntRange(from = 0) int position) {
+        return mDataSet.get(position);
     }
 
     @Override
@@ -82,20 +47,61 @@ public abstract class AbstractAdapter<T> extends RecyclerView.Adapter<ViewHolder
     }
 
     @Override
-    public T getItem(@IntRange(from = 0) int position) {
-        return mDataSet.get(position);
+    public void addData(@NonNull T item) {
+        int position = adjustNotifyPosition(mDataSet.size());
+        mDataSet.add(item);
+        notifyItemInserted(position);
+    }
+
+    @Override
+    public void addData(@IntRange(from = 0) int position, @NonNull T item) {
+        mDataSet.add(position, item);
+        notifyItemInserted(adjustNotifyPosition(position));
+    }
+
+    @Override
+    public void addAll(@NonNull List<T> items) {
+        if (!items.isEmpty()) {
+            int startPosition = adjustNotifyPosition(mDataSet.size());
+            mDataSet.addAll(items);
+            notifyItemRangeInserted(startPosition, items.size());
+        }
+    }
+
+    @Override
+    public void addAll(@IntRange(from = 0) int position, @NonNull List<T> items) {
+        if (!items.isEmpty()) {
+            mDataSet.addAll(items);
+            notifyItemRangeInserted(adjustNotifyPosition(position), items.size());
+        }
+    }
+
+    @Override
+    public void remove(@IntRange(from = 0) int position) {
+        mDataSet.remove(position);
+        if (mDataSet.isEmpty()) {
+            notifyDataSetChanged();
+        } else {
+            notifyItemRemoved(adjustNotifyPosition(position));
+        }
+    }
+
+    @Override
+    public void clear() {
+        mDataSet.clear();
+        notifyDataSetChanged();
     }
 
     @Override
     public void modify(@IntRange(from = 0) int position, @NonNull T newData) {
         mDataSet.set(position, newData);
-        notifyItemChanged(getHeadersCount() + position);
+        notifyItemChanged(adjustNotifyPosition(position));
     }
 
     @Override
     public void modify(@IntRange(from = 0) int position, Action<T> action) {
         action.doAction(mDataSet.get(position));
-        notifyItemChanged(getHeadersCount() + position);
+        notifyItemChanged(adjustNotifyPosition(position));
     }
 
     public interface OnItemClickListener {
