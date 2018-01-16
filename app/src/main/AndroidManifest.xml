@@ -16,6 +16,10 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <activity android:name=".EmptyActivity" />
+        <activity android:name=".MultiTypeActivity" />
+        <activity android:name=".LoadMoreActivity" />
+        <activity android:name=".HeaderAndFooterActivity" />
     </application>
 
 </manifest>
