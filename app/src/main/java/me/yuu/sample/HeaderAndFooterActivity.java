@@ -1,14 +1,14 @@
 package me.yuu.sample;
 
 import android.os.Bundle;
-import android.os.Handler;
-import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.GridLayoutManager;
+import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.View;
-import android.widget.Toast;
+import android.widget.ImageView;
+
+import com.bumptech.glide.Glide;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -17,135 +17,83 @@ import me.yuu.liteadapter.core.LiteAdapter;
 import me.yuu.liteadapter.core.ViewHolder;
 import me.yuu.liteadapter.core.ViewInjector;
 import me.yuu.liteadapter.core.ViewTypeLinker;
-import me.yuu.liteadapter.loadmore.MoreLoader;
 
+/**
+ * @author yu
+ */
 public class HeaderAndFooterActivity extends AppCompatActivity {
 
+    private static final int VIEW_TYPE_NORMAL = 0;
+    private static final int VIEW_TYPE_BIG = 1;
+
     private RecyclerView recyclerView;
-    private SwipeRefreshLayout refreshLayout;
-    private LiteAdapter<Person> adapter;
-    private List<Person> data = new ArrayList<>();
-    private Handler handler = new Handler();
+    private LiteAdapter<OnePiece> adapter;
+    private List<OnePiece> data = new ArrayList<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_load_more);
-        findViewById(R.id.btnInsert).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                adapter.addAll(0, data);
-            }
-        });
+        setContentView(R.layout.layout_list);
+
+        LayoutInflater inflater = LayoutInflater.from(this);
+        View header = inflater.inflate(R.layout.item_header, null);
+        View footer = inflater.inflate(R.layout.item_footer, null);
 
         recyclerView = findViewById(R.id.recyclerView);
-        final GridLayoutManager layoutManager = new GridLayoutManager(this, 2);
-        layoutManager.setSpanSizeLookup(new GridLayoutManager.SpanSizeLookup() {
-            @Override
-            public int getSpanSize(int position) {
-                return adapter.getRealItem(position).isSection() ? layoutManager.getSpanCount() : 1;
-            }
-        });
-        recyclerView.setLayoutManager(new GridLayoutManager(this, 2));
+        recyclerView.setLayoutManager(new LinearLayoutManager(this));
 
-        adapter = new LiteAdapter.Builder<Person>(this)
-                .register(0, new ViewInjector<Person>(R.layout.item_normal) {
+        adapter = new LiteAdapter.Builder<OnePiece>(this)
+                .register(VIEW_TYPE_NORMAL, new ViewInjector<OnePiece>(R.layout.item_normal) {
                     @Override
-                    public void bindData(ViewHolder holder, Person item, int position) {
-
+                    public void bindData(ViewHolder holder, final OnePiece item, int position) {
+                        HeaderAndFooterActivity.this.bindData(holder, item);
                     }
                 })
-                .register(1, new ViewInjector<Person>(R.layout.item_big) {
+                .register(VIEW_TYPE_BIG, new ViewInjector<OnePiece>(R.layout.item_big) {
                     @Override
-                    public void bindData(ViewHolder holder, Person item, int position) {
-
+                    public void bindData(ViewHolder holder, final OnePiece item, int position) {
+                        HeaderAndFooterActivity.this.bindData(holder, item);
                     }
                 })
-                .viewTypeLinker(new ViewTypeLinker<Person>() {
+                .viewTypeLinker(new ViewTypeLinker<OnePiece>() {
                     @Override
-                    public int viewType(Person item, int position) {
-                        return 0;
+                    public int viewType(OnePiece item, int position) {
+                        return item.isBigType() ? VIEW_TYPE_BIG : VIEW_TYPE_NORMAL;
                     }
                 })
-                .emptyView(R.layout.empty_view)
-                .headerView(R.layout.item_header)
-                .footerView(R.layout.item_footer)
-                .enableLoadMore(new MoreLoader.LoadMoreListener() {
-                    @Override
-                    public void onLoadMore() {
-                        loadMore();
-                    }
-                })
-                .itemClickListener(new LiteAdapter.OnItemClickListener() {
-                    @Override
-                    public void onItemClick(int position, Object item) {
-                        Toast.makeText(HeaderAndFooterActivity.this,
-                                "click position : " + position, Toast.LENGTH_SHORT).show();
-                    }
-                })
-                .itemLongClickListener(new LiteAdapter.OnItemLongClickListener() {
-                    @Override
-                    public void onItemLongClick(int position, Object item) {
-                        adapter.remove(position);
-                    }
-                })
+                .headerView(header)
+                .footerView(footer)
                 .create();
         recyclerView.setAdapter(adapter);
 
-        refreshLayout = findViewById(R.id.refreshLayout);
-        refreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
-            @Override
-            public void onRefresh() {
-                loadData();
-            }
-        });
+        adapter.setNewData(data);
     }
 
-    private void loadData() {
-        handler.postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                adapter.setNewData(data);
-                refreshLayout.setRefreshing(false);
-            }
-        }, 1000);
-    }
-
-    private void loadMore() {
-        Log.e("asd", "loadMore");
-        handler.postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                long timeMillis = System.currentTimeMillis();
-                if (timeMillis % 5 == 0 || timeMillis % 5 == 1) {
-                    adapter.addAll(data);
-                    adapter.loadMoreCompleted();
-                } else if (timeMillis % 5 == 2 || timeMillis % 5 == 3) {
-                    adapter.loadMoreError();
-                } else if (timeMillis % 5 == 4) {
-                    adapter.noMore();
-                }
-            }
-        }, 1000);
-
+    private void bindData(ViewHolder holder, final OnePiece item) {
+        holder.setText(R.id.tvDesc, item.getDesc())
+                .with(R.id.ivImage, new ViewHolder.Action<ImageView>() {
+                    @Override
+                    public void doAction(ImageView view) {
+                        Glide.with(HeaderAndFooterActivity.this)
+                                .load(item.getImageRes())
+                                .centerCrop()
+                                .into(view);
+                    }
+                });
     }
 
     {
-        data.add(Person.createItem("qwe", R.mipmap.ic_launcher));
-        data.add(Person.createItem("qwe", R.mipmap.ic_launcher));
-        data.add(Person.createItem("qwe", R.mipmap.ic_launcher));
-        data.add(Person.createItem("qwe", R.mipmap.ic_launcher));
-        data.add(Person.createItem("qwe", R.mipmap.ic_launcher));
-        data.add(Person.createItem("qwe", R.mipmap.ic_launcher));
-        data.add(Person.createItem("qwe", R.mipmap.ic_launcher));
-        data.add(Person.createItem("qwe", R.mipmap.ic_launcher));
-        data.add(Person.createItem("qwe", R.mipmap.ic_launcher));
-        data.add(Person.createItem("qwe", R.mipmap.ic_launcher));
-        data.add(Person.createItem("qwe", R.mipmap.ic_launcher));
-        data.add(Person.createItem("qwe", R.mipmap.ic_launcher));
-        data.add(Person.createItem("qwe", R.mipmap.ic_launcher));
-        data.add(Person.createItem("qwe", R.mipmap.ic_launcher));
-        data.add(Person.createItem("qwe", R.mipmap.ic_launcher));
-        data.add(Person.createItem("qwe", R.mipmap.ic_launcher));
+        data.add(new OnePiece("我是要做海贼王的男人", R.mipmap.ic_lufei, false));
+        data.add(new OnePiece("路痴路痴路痴", R.mipmap.ic_suolong, false));
+        data.add(new OnePiece("haha~", R.mipmap.ic_big1, true));
+        data.add(new OnePiece("色河童色河童色河童", R.mipmap.ic_shanzhi, false));
+        data.add(new OnePiece("haha~~", R.mipmap.ic_big2, true));
+        data.add(new OnePiece("haha~~~", R.mipmap.ic_big3, true));
+        data.add(new OnePiece("我是要做海贼王的男人", R.mipmap.ic_lufei, false));
+        data.add(new OnePiece("路痴路痴路痴", R.mipmap.ic_suolong, false));
+        data.add(new OnePiece("haha~", R.mipmap.ic_big1, true));
+        data.add(new OnePiece("色河童色河童色河童", R.mipmap.ic_shanzhi, false));
+        data.add(new OnePiece("haha~~", R.mipmap.ic_big2, true));
+        data.add(new OnePiece("haha~~~", R.mipmap.ic_big3, true));
     }
 }

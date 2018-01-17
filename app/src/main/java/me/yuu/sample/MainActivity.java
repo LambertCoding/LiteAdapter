@@ -13,6 +13,9 @@ import me.yuu.liteadapter.core.LiteAdapter;
 import me.yuu.liteadapter.core.ViewHolder;
 import me.yuu.liteadapter.core.ViewInjector;
 
+/**
+ * @author yu
+ */
 public class MainActivity extends AppCompatActivity {
 
     private final List<SampleEntity> data = new ArrayList<>();
@@ -20,7 +23,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
+        setContentView(R.layout.layout_list);
 
         RecyclerView recyclerView = findViewById(R.id.recyclerView);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
@@ -47,8 +50,6 @@ public class MainActivity extends AppCompatActivity {
 
     {
         data.add(new SampleEntity("Header & Footer", HeaderAndFooterActivity.class));
-        data.add(new SampleEntity("Empty view", EmptyActivity.class));
-        data.add(new SampleEntity("Auto LoadMore", LoadMoreActivity.class));
-        data.add(new SampleEntity("Multi view type", MultiTypeActivity.class));
+        data.add(new SampleEntity("Empty view & Auto load more", EmptyAndLoadMoreActivity.class));
     }
 }

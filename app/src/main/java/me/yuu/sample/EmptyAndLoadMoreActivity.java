@@ -4,7 +4,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.GridLayoutManager;
+import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.View;
@@ -19,12 +19,12 @@ import me.yuu.liteadapter.core.ViewInjector;
 import me.yuu.liteadapter.core.ViewTypeLinker;
 import me.yuu.liteadapter.loadmore.MoreLoader;
 
-public class EmptyActivity extends AppCompatActivity {
+public class EmptyAndLoadMoreActivity extends AppCompatActivity {
 
     private RecyclerView recyclerView;
     private SwipeRefreshLayout refreshLayout;
-    private LiteAdapter<Person> adapter;
-    private List<Person> data = new ArrayList<>();
+    private LiteAdapter<OnePiece> adapter;
+    private List<OnePiece> data = new ArrayList<>();
     private Handler handler = new Handler();
 
     @Override
@@ -39,37 +39,28 @@ public class EmptyActivity extends AppCompatActivity {
         });
 
         recyclerView = findViewById(R.id.recyclerView);
-        final GridLayoutManager layoutManager = new GridLayoutManager(this, 2);
-        layoutManager.setSpanSizeLookup(new GridLayoutManager.SpanSizeLookup() {
-            @Override
-            public int getSpanSize(int position) {
-                return adapter.getRealItem(position).isSection() ? layoutManager.getSpanCount() : 1;
-            }
-        });
-        recyclerView.setLayoutManager(new GridLayoutManager(this, 2));
+        recyclerView.setLayoutManager(new LinearLayoutManager(this));
 
-        adapter = new LiteAdapter.Builder<Person>(this)
-                .register(0, new ViewInjector<Person>(R.layout.item_normal) {
+        adapter = new LiteAdapter.Builder<OnePiece>(this)
+                .register(0, new ViewInjector<OnePiece>(R.layout.item_normal) {
                     @Override
-                    public void bindData(ViewHolder holder, Person item, int position) {
+                    public void bindData(ViewHolder holder, OnePiece item, int position) {
 
                     }
                 })
-                .register(1, new ViewInjector<Person>(R.layout.item_big) {
+                .register(1, new ViewInjector<OnePiece>(R.layout.item_big) {
                     @Override
-                    public void bindData(ViewHolder holder, Person item, int position) {
+                    public void bindData(ViewHolder holder, OnePiece item, int position) {
 
                     }
                 })
-                .viewTypeLinker(new ViewTypeLinker<Person>() {
+                .viewTypeLinker(new ViewTypeLinker<OnePiece>() {
                     @Override
-                    public int viewType(Person item, int position) {
+                    public int viewType(OnePiece item, int position) {
                         return 0;
                     }
                 })
                 .emptyView(R.layout.empty_view)
-                .headerView(R.layout.item_header)
-                .footerView(R.layout.item_footer)
                 .enableLoadMore(new MoreLoader.LoadMoreListener() {
                     @Override
                     public void onLoadMore() {
@@ -79,7 +70,7 @@ public class EmptyActivity extends AppCompatActivity {
                 .itemClickListener(new LiteAdapter.OnItemClickListener() {
                     @Override
                     public void onItemClick(int position, Object item) {
-                        Toast.makeText(EmptyActivity.this,
+                        Toast.makeText(EmptyAndLoadMoreActivity.this,
                                 "click position : " + position, Toast.LENGTH_SHORT).show();
                     }
                 })
@@ -131,21 +122,6 @@ public class EmptyActivity extends AppCompatActivity {
     }
 
     {
-        data.add(Person.createItem("qwe", R.mipmap.ic_launcher));
-        data.add(Person.createItem("qwe", R.mipmap.ic_launcher));
-        data.add(Person.createItem("qwe", R.mipmap.ic_launcher));
-        data.add(Person.createItem("qwe", R.mipmap.ic_launcher));
-        data.add(Person.createItem("qwe", R.mipmap.ic_launcher));
-        data.add(Person.createItem("qwe", R.mipmap.ic_launcher));
-        data.add(Person.createItem("qwe", R.mipmap.ic_launcher));
-        data.add(Person.createItem("qwe", R.mipmap.ic_launcher));
-        data.add(Person.createItem("qwe", R.mipmap.ic_launcher));
-        data.add(Person.createItem("qwe", R.mipmap.ic_launcher));
-        data.add(Person.createItem("qwe", R.mipmap.ic_launcher));
-        data.add(Person.createItem("qwe", R.mipmap.ic_launcher));
-        data.add(Person.createItem("qwe", R.mipmap.ic_launcher));
-        data.add(Person.createItem("qwe", R.mipmap.ic_launcher));
-        data.add(Person.createItem("qwe", R.mipmap.ic_launcher));
-        data.add(Person.createItem("qwe", R.mipmap.ic_launcher));
+
     }
 }

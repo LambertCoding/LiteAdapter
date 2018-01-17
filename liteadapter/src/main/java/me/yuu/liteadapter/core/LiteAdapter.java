@@ -4,6 +4,8 @@ import android.content.Context;
 import android.support.annotation.LayoutRes;
 import android.support.annotation.NonNull;
 import android.support.v7.widget.GridLayoutManager;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.OrientationHelper;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.StaggeredGridLayoutManager;
 import android.util.Log;
@@ -33,10 +35,11 @@ public class LiteAdapter<T> extends AbstractAdapter<T> {
     private static final int VIEW_TYPE_HEADER_INDEX = -7060;
     private static final int VIEW_TYPE_FOOTER_INDEX = -8060;
 
-    private SoftReference<RecyclerView> mRecyclerView;
+    private int mOrientation;
 
-    private final SparseArray<View> mHerders;
-    private final SparseArray<View> mFooters;
+    private SoftReference<RecyclerView> mRecyclerView;
+    private SparseArray<View> mHerders;
+    private SparseArray<View> mFooters;
     private final SparseArray<ViewInjector> mViewInjectors;
     private final ViewTypeLinker mViewTypeLinker;
     private final MoreLoader mMoreLoader;
@@ -161,9 +164,13 @@ public class LiteAdapter<T> extends AbstractAdapter<T> {
         } else if (viewType == VIEW_TYPE_LOAD_MORE) {
             return new ViewHolder(mMoreLoader.getLoadMoreFooterView());
         } else if (isHeaderType(viewType)) {
-            return new ViewHolder(mHerders.get(viewType));
+            View view = mHerders.get(viewType);
+            view.setLayoutParams(generateLayoutParamsForHeaderAndFooter());
+            return new ViewHolder(view);
         } else if (isFooterType(viewType)) {
-            return new ViewHolder(mFooters.get(viewType));
+            View view = mFooters.get(viewType);
+            view.setLayoutParams(generateLayoutParamsForHeaderAndFooter());
+            return new ViewHolder(view);
         } else {
             ViewInjector injector = mViewInjectors.get(viewType);
 
@@ -209,6 +216,16 @@ public class LiteAdapter<T> extends AbstractAdapter<T> {
         setupItemLongClickListener(holder);
     }
 
+    private RecyclerView.LayoutParams generateLayoutParamsForHeaderAndFooter() {
+        if (mOrientation == OrientationHelper.HORIZONTAL) {
+            return new RecyclerView.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT,
+                    ViewGroup.LayoutParams.MATCH_PARENT);
+        } else {
+            return new RecyclerView.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
+                    ViewGroup.LayoutParams.WRAP_CONTENT);
+        }
+    }
+
     private void setupItemClickListener(final ViewHolder viewHolder) {
         viewHolder.itemView.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -237,11 +254,12 @@ public class LiteAdapter<T> extends AbstractAdapter<T> {
     @Override
     public void onAttachedToRecyclerView(RecyclerView recyclerView) {
         super.onAttachedToRecyclerView(recyclerView);
-        if (mRecyclerView == null) {
+        if (mRecyclerView == null || mRecyclerView.get() == null) {
             mRecyclerView = new SoftReference<>(recyclerView);
         }
-
         RecyclerView.LayoutManager manager = recyclerView.getLayoutManager();
+        initOrientation(manager);
+
         if (manager instanceof GridLayoutManager) {
             final GridLayoutManager gridManager = ((GridLayoutManager) manager);
             gridManager.setSpanSizeLookup(new GridLayoutManager.SpanSizeLookup() {
@@ -258,6 +276,16 @@ public class LiteAdapter<T> extends AbstractAdapter<T> {
 
         if (mMoreLoader != null) {
             recyclerView.addOnScrollListener(mMoreLoader);
+        }
+    }
+
+    private void initOrientation(RecyclerView.LayoutManager manager) {
+        if (manager instanceof LinearLayoutManager) {
+            LinearLayoutManager linearLayoutManager = (LinearLayoutManager) manager;
+            this.mOrientation = linearLayoutManager.getOrientation();
+        } else if (manager instanceof StaggeredGridLayoutManager) {
+            StaggeredGridLayoutManager staggeredGridLayoutManager = (StaggeredGridLayoutManager) manager;
+            this.mOrientation = staggeredGridLayoutManager.getOrientation();
         }
     }
 
@@ -283,6 +311,52 @@ public class LiteAdapter<T> extends AbstractAdapter<T> {
                 p.setFullSpan(true);
             }
         }
+    }
+
+    public void addFooter(View footer) {
+        Precondition.checkNotNull(footer);
+        mFooters.put(VIEW_TYPE_FOOTER_INDEX + mFooters.size(), footer);
+        notifyDataSetChanged();
+    }
+
+    public void removeFooter(int footerPosition) {
+        removeAndOptimizeIndex(false, footerPosition);
+    }
+
+    public void addHeader(View header) {
+        Precondition.checkNotNull(header);
+        mHerders.put(VIEW_TYPE_HEADER_INDEX + mHerders.size(), header);
+        notifyDataSetChanged();
+    }
+
+    public void removeHeader(int headerPosition) {
+        removeAndOptimizeIndex(true, headerPosition);
+    }
+
+    private void removeAndOptimizeIndex(boolean isHeader, int position) {
+        SparseArray<View> target = isHeader ? mHerders : mFooters;
+        Precondition.checkArgument(position >= 0 && position < target.size(),
+                "Invalid position");
+
+        // 因为header和footer的type都是按照添加的顺序自动生成的
+        // 所以删除指定位置的header和footer后，需要重新优化key，否则再次addHeader或者addFooter可能会出错
+        SparseArray<View> temp = new SparseArray<>();
+        int viewTypeIndex = isHeader ? VIEW_TYPE_HEADER_INDEX : VIEW_TYPE_FOOTER_INDEX;
+
+        for (int i = 0; i < target.size(); i++) {
+            if (i == position) {
+                continue;
+            }
+            temp.put(viewTypeIndex + temp.size(), target.valueAt(i));
+        }
+
+        if (isHeader) {
+            mHerders = temp;
+        } else {
+            mFooters = temp;
+        }
+
+        notifyDataSetChanged();
     }
 
     ///////////////////////////////////LoadMore///////////////////////////////////
@@ -397,22 +471,12 @@ public class LiteAdapter<T> extends AbstractAdapter<T> {
             return this;
         }
 
-        public Builder<D> headerView(@LayoutRes int headerLayout) {
-            headerView(LayoutInflater.from(context).inflate(headerLayout, null));
-            return this;
-        }
-
         public Builder<D> footerView(@NonNull View footer) {
             Precondition.checkNotNull(footer);
 
             int footerType = VIEW_TYPE_FOOTER_INDEX + footers.size();
             footers.put(footerType, footer);
 
-            return this;
-        }
-
-        public Builder<D> footerView(@LayoutRes int footerLayout) {
-            footerView(LayoutInflater.from(context).inflate(footerLayout, null));
             return this;
         }
 
