@@ -10,8 +10,15 @@
 
 ## Setup
 ```
-todo 还没发布，骚等
-compile ''
+// in project build.gradle
+allprojects {
+    repositories {
+        ...
+        maven { url 'https://www.jitpack.io' }
+    }
+}
+// in module build.gradle
+compile 'com.github.LambertCoding:LiteAdapter:1.0'
 ```
 ## Usages
 step 1: create adapter
