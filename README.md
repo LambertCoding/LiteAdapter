@@ -1,4 +1,4 @@
- ![image]()
+ ![image](https://github.com/LambertCoding/LiteAdapter/blob/master/LiteAdapter.png)
  
  ## Features
  ---
@@ -43,13 +43,13 @@ holder.setText(R.id.tvDesc, item.getDesc())
 
 step 3: Use LiteAdapter as normal adapter
 ```java
-    {
-        data.add(new OnePiece("我是要做海贼王的男人", R.mipmap.ic_lufei, false));
-        data.add(new OnePiece("路痴路痴路痴", R.mipmap.ic_suolong, false));
-        data.add(new OnePiece("色河童色河童色河童", R.mipmap.ic_shanzhi, false));
-    }
-    
-    adapter.setNewData(data);
+{
+    data.add(new OnePiece("我是要做海贼王的男人", R.mipmap.ic_lufei, false));
+    data.add(new OnePiece("路痴路痴路痴", R.mipmap.ic_suolong, false));
+    data.add(new OnePiece("色河童色河童色河童", R.mipmap.ic_shanzhi, false));
+}
+
+adapter.setNewData(data);
 ```
 ## Advanced
 ```java
@@ -66,13 +66,16 @@ adapter = new LiteAdapter.Builder<OnePiece>(this)
                 // bindData
             }
         })
+        // multi view type must set a viewTypeLinker
         .viewTypeLinker(new ViewTypeLinker<OnePiece>() {
             @Override
             public int viewType(OnePiece item, int position) {
                 return item.isBigType() ? VIEW_TYPE_BIG : VIEW_TYPE_NORMAL;
             }
         })
+        // empty view is disable if have header or footer view, not include load more footer
         .emptyView(emptyView)
+        // You can add multi header and footer layout
         .headerView(headerView)
         .footerView(footerView)
         .enableLoadMore(new MoreLoader.LoadMoreListener() {
@@ -97,6 +100,7 @@ adapter = new LiteAdapter.Builder<OnePiece>(this)
 ```
 ## api
 ```java
+// adapter
     D getItem(int position);
     void addData(D item);
     void addData(int position, D item);
