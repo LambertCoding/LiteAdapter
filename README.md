@@ -1,7 +1,7 @@
  ![image](https://github.com/LambertCoding/LiteAdapter/blob/master/LiteAdapter.png)
  
  ## Features
- ---
+
 * Fluent & simple API
 * Multi View Type
 * Auto LoadMore
@@ -17,11 +17,12 @@ allprojects {
         maven { url 'https://www.jitpack.io' }
     }
 }
+
 // in module build.gradle
 compile 'com.github.LambertCoding:LiteAdapter:1.0'
 ```
 ## Usages
-step 1: create adapter
+#### step 1: create adapter
 ```java
 adapter = new LiteAdapter.Builder<OnePiece>(this)
         .register(VIEW_TYPE_NORMAL, new ViewInjector<OnePiece>(R.layout.item_normal) {
@@ -33,8 +34,8 @@ adapter = new LiteAdapter.Builder<OnePiece>(this)
         .create();
 recyclerView.setAdapter(adapter);
 ```
-step 2: bind data
-```aidl
+#### step 2: bind data
+```java
 holder.setText(R.id.tvDesc, item.getDesc())
         // .set...
         .with(R.id.ivImage, new ViewHolder.Action<ImageView>() {
@@ -48,7 +49,7 @@ holder.setText(R.id.tvDesc, item.getDesc())
         });
 ```
 
-step 3: Use LiteAdapter as normal adapter
+#### step 3: Use LiteAdapter as normal adapter
 ```java
 {
     data.add(new OnePiece("我是要做海贼王的男人", R.mipmap.ic_lufei, false));
@@ -58,7 +59,7 @@ step 3: Use LiteAdapter as normal adapter
 
 adapter.setNewData(data);
 ```
-## Advanced
+## Advanced usages
 ```java
 adapter = new LiteAdapter.Builder<OnePiece>(this)
         .register(VIEW_TYPE_NORMAL, new ViewInjector<OnePiece>(R.layout.item_normal) {
@@ -107,7 +108,6 @@ adapter = new LiteAdapter.Builder<OnePiece>(this)
 ```
 ## api
 ```java
-// adapter
     D getItem(int position);
     void addData(D item);
     void addData(int position, D item);
@@ -124,10 +124,10 @@ adapter = new LiteAdapter.Builder<OnePiece>(this)
     void addHeader(View header);
     void removeHeader(int headerPosition);
     
-    void setLoadMoreEnable(boolean enable)
-    void loadMoreCompleted()
-    void loadMoreError()
-    void noMore()
+    void setLoadMoreEnable(boolean enable);
+    void loadMoreCompleted();
+    void loadMoreError();
+    void noMore();
 ```
 ## License
     MIT License
