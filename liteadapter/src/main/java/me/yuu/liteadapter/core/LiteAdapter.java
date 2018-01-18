@@ -336,7 +336,8 @@ public class LiteAdapter<T> extends AbstractAdapter<T> {
     private void removeAndOptimizeIndex(boolean isHeader, int position) {
         SparseArray<View> target = isHeader ? mHerders : mFooters;
         Precondition.checkArgument(position >= 0 && position < target.size(),
-                "Invalid position");
+                "Invalid position = " + position
+                        + (isHeader ? ", mHeaders.Size() = " : ", mFooters.Size() = ") + target.size());
 
         // 因为header和footer的type都是按照添加的顺序自动生成的
         // 所以删除指定位置的header和footer后，需要重新优化key，否则再次addHeader或者addFooter可能会出错

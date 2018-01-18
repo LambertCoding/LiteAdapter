@@ -7,6 +7,7 @@ import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.ImageView;
+import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
 
@@ -35,7 +36,7 @@ public class HeaderAndFooterActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.layout_list);
 
-        LayoutInflater inflater = LayoutInflater.from(this);
+        final LayoutInflater inflater = LayoutInflater.from(this);
         View header = inflater.inflate(R.layout.item_header, null);
         View footer = inflater.inflate(R.layout.item_footer, null);
 
@@ -63,10 +64,20 @@ public class HeaderAndFooterActivity extends AppCompatActivity {
                 })
                 .headerView(header)
                 .footerView(footer)
+                .itemClickListener(new LiteAdapter.OnItemClickListener() {
+                    @Override
+                    public void onItemClick(int position, Object item) {
+                        showToast("click position : " + position);
+                    }
+                })
                 .create();
         recyclerView.setAdapter(adapter);
 
         adapter.setNewData(data);
+    }
+
+    private void showToast(String str) {
+        Toast.makeText(this, str, Toast.LENGTH_SHORT).show();
     }
 
     private void bindData(ViewHolder holder, final OnePiece item) {
@@ -85,15 +96,20 @@ public class HeaderAndFooterActivity extends AppCompatActivity {
     {
         data.add(new OnePiece("我是要做海贼王的男人", R.mipmap.ic_lufei, false));
         data.add(new OnePiece("路痴路痴路痴", R.mipmap.ic_suolong, false));
-        data.add(new OnePiece("haha~", R.mipmap.ic_big1, true));
-        data.add(new OnePiece("色河童色河童色河童", R.mipmap.ic_shanzhi, false));
         data.add(new OnePiece("haha~~", R.mipmap.ic_big2, true));
-        data.add(new OnePiece("haha~~~", R.mipmap.ic_big3, true));
+        data.add(new OnePiece("色河童色河童色河童", R.mipmap.ic_shanzhi, false));
         data.add(new OnePiece("我是要做海贼王的男人", R.mipmap.ic_lufei, false));
+        data.add(new OnePiece("haha~~~", R.mipmap.ic_big3, true));
         data.add(new OnePiece("路痴路痴路痴", R.mipmap.ic_suolong, false));
         data.add(new OnePiece("haha~", R.mipmap.ic_big1, true));
         data.add(new OnePiece("色河童色河童色河童", R.mipmap.ic_shanzhi, false));
+        data.add(new OnePiece("haha~", R.mipmap.ic_big1, true));
+        data.add(new OnePiece("我是要做海贼王的男人", R.mipmap.ic_lufei, false));
         data.add(new OnePiece("haha~~", R.mipmap.ic_big2, true));
+        data.add(new OnePiece("路痴路痴路痴", R.mipmap.ic_suolong, false));
         data.add(new OnePiece("haha~~~", R.mipmap.ic_big3, true));
+        data.add(new OnePiece("我是要做海贼王的男人", R.mipmap.ic_lufei, false));
+        data.add(new OnePiece("路痴路痴路痴", R.mipmap.ic_suolong, false));
+        data.add(new OnePiece("色河童色河童色河童", R.mipmap.ic_shanzhi, false));
     }
 }

@@ -5,12 +5,13 @@
     android:id="@+id/refreshLayout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#00cc00"
+    android:background="#eeeeee"
     android:padding="15dp">
 
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="center"
-        android:text="empty..." />
+        android:gravity="center"
+        android:text="没有数据呢\n点击重新加载" />
 </FrameLayout>
