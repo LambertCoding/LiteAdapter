@@ -1,6 +1,6 @@
  ![image](https://github.com/LambertCoding/LiteAdapter/blob/master/LiteAdapter.png)
  
- ## Features
+## Features
 
 * Fluent & simple API
 * Multi View Type
