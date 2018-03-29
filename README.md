@@ -19,7 +19,7 @@ allprojects {
 }
 
 // in module build.gradle
-compile 'com.github.LambertCoding:LiteAdapter:1.0'
+compile 'com.github.LambertCoding:LiteAdapter:1.0.1'
 ```
 ## Usages
 #### step 1: create adapter
