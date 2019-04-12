@@ -18,11 +18,6 @@ public class Utils {
         return (int) (dpValue * scale + 0.5f);
     }
 
-    public static int sp2px(Context context, final float spValue) {
-        final float fontScale = context.getResources().getDisplayMetrics().scaledDensity;
-        return (int) (spValue * fontScale + 0.5f);
-    }
-
     public static int findLastCompletelyVisibleItemPosition(RecyclerView.LayoutManager layoutManager) {
         int lastPosition;
         if (layoutManager instanceof GridLayoutManager) {

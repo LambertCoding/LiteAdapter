@@ -14,7 +14,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
-import java.lang.ref.SoftReference;
+import java.lang.ref.WeakReference;
 
 import me.yuu.liteadapter.loadmore.DefaultLoadMoreFooter;
 import me.yuu.liteadapter.loadmore.ILoadMoreFooter;
@@ -37,7 +37,7 @@ public class LiteAdapter<T> extends AbstractAdapter<T> {
 
     private int mOrientation;
 
-    private SoftReference<RecyclerView> mRecyclerView;
+    private WeakReference<RecyclerView> mRecyclerView;
     private SparseArray<View> mHerders;
     private SparseArray<View> mFooters;
     private final SparseArray<ViewInjector> mViewInjectors;
@@ -255,7 +255,7 @@ public class LiteAdapter<T> extends AbstractAdapter<T> {
     public void onAttachedToRecyclerView(RecyclerView recyclerView) {
         super.onAttachedToRecyclerView(recyclerView);
         if (mRecyclerView == null || mRecyclerView.get() == null) {
-            mRecyclerView = new SoftReference<>(recyclerView);
+            mRecyclerView = new WeakReference<>(recyclerView);
         }
         RecyclerView.LayoutManager manager = recyclerView.getLayoutManager();
         initOrientation(manager);
@@ -301,7 +301,7 @@ public class LiteAdapter<T> extends AbstractAdapter<T> {
     public void onViewAttachedToWindow(ViewHolder holder) {
         super.onViewAttachedToWindow(holder);
         ViewGroup.LayoutParams lp = holder.itemView.getLayoutParams();
-        if (lp != null && lp instanceof StaggeredGridLayoutManager.LayoutParams) {
+        if (lp instanceof StaggeredGridLayoutManager.LayoutParams) {
             int position = holder.getLayoutPosition();
             if (isEmptyViewEnable()
                     || isHeader(position)
