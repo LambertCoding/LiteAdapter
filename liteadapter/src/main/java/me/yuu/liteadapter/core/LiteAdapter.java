@@ -56,7 +56,7 @@ public class LiteAdapter<T> extends AbstractAdapter<T> {
     private final LiteAdapter.OnItemClickListener mOnItemClickListener;
     private final LiteAdapter.OnItemLongClickListener mOnItemLongClickListener;
 
-    private LiteAdapter(Builder builder) {
+    private LiteAdapter(Builder<T> builder) {
         this.mMoreLoader = builder.moreLoader;
         this.mEmptyView = builder.emptyView;
         this.mHerders = builder.headers;
