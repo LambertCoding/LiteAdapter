@@ -27,7 +27,7 @@ public abstract class AbstractAdapter<T> extends RecyclerView.Adapter<ViewHolder
         return position;
     }
 
-    public List getDataSet() {
+    public List<T> getDataSet() {
         return mDataSet;
     }
 
@@ -48,9 +48,9 @@ public abstract class AbstractAdapter<T> extends RecyclerView.Adapter<ViewHolder
 
     @Override
     public void addData(@NonNull T item) {
-        int position = adjustNotifyPosition(mDataSet.size());
+        int adjustNotifyPosition = adjustNotifyPosition(mDataSet.size());
         mDataSet.add(item);
-        notifyItemInserted(position);
+        notifyItemInserted(adjustNotifyPosition);
     }
 
     @Override
@@ -62,16 +62,15 @@ public abstract class AbstractAdapter<T> extends RecyclerView.Adapter<ViewHolder
     @Override
     public void addAll(@NonNull List<T> items) {
         if (!items.isEmpty()) {
-            int startPosition = adjustNotifyPosition(mDataSet.size());
             mDataSet.addAll(items);
-            notifyItemRangeInserted(startPosition, items.size());
+            notifyItemRangeInserted(adjustNotifyPosition(mDataSet.size()), items.size());
         }
     }
 
     @Override
     public void addAll(@IntRange(from = 0) int position, @NonNull List<T> items) {
         if (!items.isEmpty()) {
-            mDataSet.addAll(items);
+            mDataSet.addAll(position, items);
             notifyItemRangeInserted(adjustNotifyPosition(position), items.size());
         }
     }
@@ -111,5 +110,4 @@ public abstract class AbstractAdapter<T> extends RecyclerView.Adapter<ViewHolder
     public interface OnItemLongClickListener {
         void onItemLongClick(int position, Object item);
     }
-
 }

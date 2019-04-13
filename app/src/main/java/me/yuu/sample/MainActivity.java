@@ -29,7 +29,7 @@ public class MainActivity extends AppCompatActivity {
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
 
         LiteAdapter<SampleEntity> adapter = new LiteAdapter.Builder<SampleEntity>(this)
-                .register(0, new ViewInjector<SampleEntity>(R.layout.item_main) {
+                .register(new ViewInjector<SampleEntity>(R.layout.item_main) {
                     @Override
                     public void bindData(ViewHolder holder, SampleEntity item, int position) {
                         holder.setText(R.id.tvDesc, item.getName());
@@ -42,8 +42,8 @@ public class MainActivity extends AppCompatActivity {
                                 ((SampleEntity) item).getTarget()));
                     }
                 })
-                .create();
-        recyclerView.setAdapter(adapter);
+                .create()
+                .attachTo(recyclerView);
 
         adapter.setNewData(data);
     }

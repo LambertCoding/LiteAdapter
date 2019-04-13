@@ -11,6 +11,10 @@ public class OnePiece {
     private int imageRes;
     private boolean isBigType;
 
+    public OnePiece(String desc) {
+        this(desc, -1, false);
+    }
+
     public OnePiece(String desc, int imageRes, boolean isBigType) {
         this.desc = desc;
         this.imageRes = imageRes;

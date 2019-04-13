@@ -16,16 +16,13 @@ import com.bumptech.glide.Glide;
 import java.util.ArrayList;
 import java.util.List;
 
+import me.yuu.liteadapter.core.InjectorFinder;
 import me.yuu.liteadapter.core.LiteAdapter;
 import me.yuu.liteadapter.core.ViewHolder;
 import me.yuu.liteadapter.core.ViewInjector;
-import me.yuu.liteadapter.core.ViewTypeLinker;
 import me.yuu.liteadapter.loadmore.MoreLoader;
 
 public class EmptyAndLoadMoreActivity extends AppCompatActivity {
-
-    private static final int VIEW_TYPE_NORMAL = 0;
-    private static final int VIEW_TYPE_BIG = 1;
 
     private RecyclerView recyclerView;
     private SwipeRefreshLayout refreshLayout;
@@ -33,6 +30,7 @@ public class EmptyAndLoadMoreActivity extends AppCompatActivity {
     private List<OnePiece> data = new ArrayList<>();
     private Handler handler = new Handler();
     private int loadMoreCount = 0;
+    private int insertCount = 0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -44,6 +42,24 @@ public class EmptyAndLoadMoreActivity extends AppCompatActivity {
                 adapter.clear();
             }
         });
+        findViewById(R.id.btnAdd).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (adapter.getDataSet().size() == 0) {
+                    showToast("请先点击重试！");
+                    return;
+                }
+                if (insertCount <= 2) {
+                    adapter.addData(2, new OnePiece("我是新增的item " + insertCount++));
+                } else {
+                    List<OnePiece> newData = new ArrayList<>();
+                    newData.add(new OnePiece("批量新增的item" + insertCount++));
+                    newData.add(new OnePiece("批量新增的item" + insertCount++));
+                    adapter.addAll(2, newData);
+                }
+            }
+        });
+
         View emptyView = LayoutInflater.from(this).inflate(R.layout.empty_view, null);
         emptyView.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -56,22 +72,22 @@ public class EmptyAndLoadMoreActivity extends AppCompatActivity {
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
 
         adapter = new LiteAdapter.Builder<OnePiece>(this)
-                .register(VIEW_TYPE_NORMAL, new ViewInjector<OnePiece>(R.layout.item_normal) {
+                .register(new ViewInjector<OnePiece>(R.layout.item_normal) {
                     @Override
                     public void bindData(ViewHolder holder, final OnePiece item, int position) {
-                        bindDatas(holder, item);
+                        EmptyAndLoadMoreActivity.this.bindData(holder, item);
                     }
                 })
-                .register(VIEW_TYPE_BIG, new ViewInjector<OnePiece>(R.layout.item_big) {
+                .register(new ViewInjector<OnePiece>(R.layout.item_big) {
                     @Override
                     public void bindData(ViewHolder holder, final OnePiece item, int position) {
-                        bindDatas(holder, item);
+                        EmptyAndLoadMoreActivity.this.bindData(holder, item);
                     }
                 })
-                .viewTypeLinker(new ViewTypeLinker<OnePiece>() {
+                .injectorFinder(new InjectorFinder<OnePiece>() {
                     @Override
-                    public int viewType(OnePiece item, int position) {
-                        return item.isBigType() ? VIEW_TYPE_BIG : VIEW_TYPE_NORMAL;
+                    public int index(OnePiece item, int position) {
+                        return item.isBigType() ? 1 : 0;
                     }
                 })
                 .emptyView(emptyView)
@@ -100,6 +116,7 @@ public class EmptyAndLoadMoreActivity extends AppCompatActivity {
         refreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
             public void onRefresh() {
+                insertCount = 0;
                 loadData();
             }
         });
@@ -139,11 +156,12 @@ public class EmptyAndLoadMoreActivity extends AppCompatActivity {
 
     }
 
-    private void bindDatas(ViewHolder holder, final OnePiece item) {
+    private void bindData(ViewHolder holder, final OnePiece item) {
         holder.setText(R.id.tvDesc, item.getDesc())
                 .with(R.id.ivImage, new ViewHolder.Action<ImageView>() {
                     @Override
                     public void doAction(ImageView view) {
+                        if (item.getImageRes() == -1) return;
                         Glide.with(EmptyAndLoadMoreActivity.this)
                                 .load(item.getImageRes())
                                 .centerCrop()

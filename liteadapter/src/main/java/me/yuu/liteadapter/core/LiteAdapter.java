@@ -8,7 +8,6 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.OrientationHelper;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.StaggeredGridLayoutManager;
-import android.util.Log;
 import android.util.SparseArray;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -35,13 +34,23 @@ public class LiteAdapter<T> extends AbstractAdapter<T> {
     private static final int VIEW_TYPE_HEADER_INDEX = -7060;
     private static final int VIEW_TYPE_FOOTER_INDEX = -8060;
 
+    private WeakReference<RecyclerView> mRecyclerView;
     private int mOrientation;
 
-    private WeakReference<RecyclerView> mRecyclerView;
+    /**
+     * key: viewType    value: ViewInjector
+     */
     private SparseArray<View> mHerders;
+    /**
+     * key: viewType    value: ViewInjector
+     */
     private SparseArray<View> mFooters;
+    /**
+     * key: viewType    value: ViewInjector
+     */
     private final SparseArray<ViewInjector> mViewInjectors;
-    private final ViewTypeLinker mViewTypeLinker;
+
+    private final InjectorFinder mInjectorFinder;
     private final MoreLoader mMoreLoader;
     private final View mEmptyView;
     private final LiteAdapter.OnItemClickListener mOnItemClickListener;
@@ -52,7 +61,7 @@ public class LiteAdapter<T> extends AbstractAdapter<T> {
         this.mEmptyView = builder.emptyView;
         this.mHerders = builder.headers;
         this.mFooters = builder.footers;
-        this.mViewTypeLinker = builder.viewTypeLinker;
+        this.mInjectorFinder = builder.viewTypeLinker;
         this.mViewInjectors = builder.injectors;
         this.mOnItemClickListener = builder.onItemClickListener;
         this.mOnItemLongClickListener = builder.onItemLongClickListener;
@@ -63,7 +72,7 @@ public class LiteAdapter<T> extends AbstractAdapter<T> {
         return position + mHerders.size();
     }
 
-    public T getRealItem(int position) {
+    public Object getRealItem(int position) {
         if (isHeader(position) || isFooter(position)) {
             return null;
         }
@@ -138,23 +147,24 @@ public class LiteAdapter<T> extends AbstractAdapter<T> {
             return VIEW_TYPE_LOAD_MORE;
         }
 
-        return getFromInjector(position);
+        return getViewTypeFromInjectors(position);
     }
 
-    private int getFromInjector(int position) {
+    private int getViewTypeFromInjectors(int position) {
         Precondition.checkState(mViewInjectors.size() != 0, "No view type is registered.");
 
+        int index = 0;
         if (mViewInjectors.size() > 1) {
-            Precondition.checkNotNull(mViewTypeLinker,
+            Precondition.checkNotNull(mInjectorFinder,
                     "Multiple view types are registered. You must set a ViewTypeInjector for LiteAdapter");
             int adjustPosition = position - mHerders.size();
-            return mViewTypeLinker.viewType(mDataSet.get(adjustPosition), adjustPosition);
-        } else {
-            if (mViewTypeLinker != null) {
-                Log.i("LiteAdapter", "Single view type don't need ViewTypeLinker,Ignore!");
-            }
+            index = mInjectorFinder.index(mDataSet.get(adjustPosition), adjustPosition);
+
+            Precondition.checkArgument(index >= 0 && index < mViewInjectors.size(),
+                    "return wrong index = " + index + " in InjectorFinder, You have registered"
+                            + mViewInjectors.size() + " ViewInjector!");
         }
-        return mViewInjectors.keyAt(0);
+        return mViewInjectors.keyAt(index);
     }
 
     @Override
@@ -175,7 +185,7 @@ public class LiteAdapter<T> extends AbstractAdapter<T> {
             ViewInjector injector = mViewInjectors.get(viewType);
 
             Precondition.checkNotNull(injector, "You haven't registered this view type("
-                    + viewType + ") yet . Or you return the wrong view type in ViewTypeLinker.");
+                    + viewType + ") yet . Or you return the wrong view type in InjectorFinder.");
 
             View itemView = LayoutInflater.from(parent.getContext())
                     .inflate(injector.getLayoutId(), parent, false);
@@ -193,22 +203,18 @@ public class LiteAdapter<T> extends AbstractAdapter<T> {
         final Object item = mDataSet.get(position - mHerders.size());
         int viewType = getItemViewType(position);
 
-        Precondition.checkState(!isReservedType(viewType), "You use the reserved view type : " + viewType);
+        Precondition.checkState(!isReservedType(viewType),
+                "You use the reserved view type : " + viewType);
 
-        ViewInjector injector = mViewInjectors.get(viewType);
-
-        Precondition.checkNotNull(injector, "You haven't registered this view type("
-                + viewType + ") yet . Or you return the wrong view type in ViewTypeLinker.");
+        ViewInjector injector = Precondition.checkNotNull(mViewInjectors.get(viewType),
+                "You haven't registered this view type(" + viewType +
+                        ") yet . Or you return the wrong view type in InjectorFinder.");
 
         try {
             injector.bindData(holder, item, position - mHerders.size());
         } catch (ClassCastException e) {
-            // 发生这个异常是由于使用多种实体类型的时候,ViewTypeLinker返回了错误的ViewType
-            // 比如：注册了一个类型111，实体类型是User：adapter.register(111, new ViewInjector<User>(R.layout.item_user)
-            //      注册了一个类型222，实体类型是Student：adapter.register(222, new ViewInjector<Student>(R.layout.item_student)
-            // 但是在ViewTypeLinker中，获取到的实体是User，但是返回的条目类型是222，就会出现这个异常；
-            throw new IllegalStateException("Returned the wrong view type in ViewTypeLinker."
-                    + "position = " + (position - mHerders.size()) + " ViewType = " + viewType
+            throw new ClassCastException("Register wrong generic type."
+                    + "position = " + (position - mHerders.size())
                     + "item class = " + item.getClass().getName());
         }
 
@@ -418,16 +424,21 @@ public class LiteAdapter<T> extends AbstractAdapter<T> {
         }
     }
 
+    public LiteAdapter<T> attachTo(RecyclerView recyclerView) {
+        recyclerView.setAdapter(this);
+        return this;
+    }
+
     public static class Builder<D> {
-        Context context;
-        View emptyView;
-        MoreLoader moreLoader;
-        ViewTypeLinker viewTypeLinker;
-        OnItemClickListener onItemClickListener;
-        OnItemLongClickListener onItemLongClickListener;
-        final SparseArray<View> headers = new SparseArray<>();
-        final SparseArray<View> footers = new SparseArray<>();
-        final SparseArray<ViewInjector> injectors = new SparseArray<>();
+        private Context context;
+        private View emptyView;
+        private MoreLoader moreLoader;
+        private InjectorFinder viewTypeLinker;
+        private OnItemClickListener onItemClickListener;
+        private OnItemLongClickListener onItemLongClickListener;
+        private final SparseArray<View> headers = new SparseArray<>();
+        private final SparseArray<View> footers = new SparseArray<>();
+        private final SparseArray<ViewInjector> injectors = new SparseArray<>();
 
         public Builder(Context context) {
             this.context = Precondition.checkNotNull(context);
@@ -457,8 +468,8 @@ public class LiteAdapter<T> extends AbstractAdapter<T> {
             return this;
         }
 
-        public Builder<D> viewTypeLinker(@NonNull ViewTypeLinker<D> linker) {
-            Precondition.checkArgument(viewTypeLinker == null, "Only one ViewTypeLinker can be registered.");
+        public Builder<D> injectorFinder(@NonNull InjectorFinder linker) {
+            Precondition.checkArgument(viewTypeLinker == null, "Only one InjectorFinder can be registered.");
             this.viewTypeLinker = Precondition.checkNotNull(linker);
             return this;
         }
@@ -496,10 +507,9 @@ public class LiteAdapter<T> extends AbstractAdapter<T> {
             return this;
         }
 
-        public <T> Builder<D> register(int viewType, @NonNull ViewInjector<T> injector) {
+        public <T> Builder<D> register(@NonNull ViewInjector<T> injector) {
             Precondition.checkNotNull(injector);
-            Precondition.checkState(injectors.get(viewType) == null,
-                    "You have already registered this viewType:" + viewType);
+            int viewType = injectors.size() + 1;
             injectors.put(viewType, injector);
             return this;
         }

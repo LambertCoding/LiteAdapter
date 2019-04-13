@@ -14,18 +14,15 @@ import com.bumptech.glide.Glide;
 import java.util.ArrayList;
 import java.util.List;
 
+import me.yuu.liteadapter.core.InjectorFinder;
 import me.yuu.liteadapter.core.LiteAdapter;
 import me.yuu.liteadapter.core.ViewHolder;
 import me.yuu.liteadapter.core.ViewInjector;
-import me.yuu.liteadapter.core.ViewTypeLinker;
 
 /**
  * @author yu
  */
 public class HeaderAndFooterActivity extends AppCompatActivity {
-
-    private static final int VIEW_TYPE_NORMAL = 0;
-    private static final int VIEW_TYPE_BIG = 1;
 
     private RecyclerView recyclerView;
     private LiteAdapter<OnePiece> adapter;
@@ -37,32 +34,36 @@ public class HeaderAndFooterActivity extends AppCompatActivity {
         setContentView(R.layout.layout_list);
 
         final LayoutInflater inflater = LayoutInflater.from(this);
-        View header = inflater.inflate(R.layout.item_header, null);
+        View header1 = inflater.inflate(R.layout.item_header, null);
+        View header2 = inflater.inflate(R.layout.item_header, null);
+        View header3 = inflater.inflate(R.layout.item_header, null);
         View footer = inflater.inflate(R.layout.item_footer, null);
 
         recyclerView = findViewById(R.id.recyclerView);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
 
         adapter = new LiteAdapter.Builder<OnePiece>(this)
-                .register(VIEW_TYPE_NORMAL, new ViewInjector<OnePiece>(R.layout.item_normal) {
+                .register( new ViewInjector<OnePiece>(R.layout.item_normal) {
                     @Override
                     public void bindData(ViewHolder holder, final OnePiece item, int position) {
                         HeaderAndFooterActivity.this.bindData(holder, item);
                     }
                 })
-                .register(VIEW_TYPE_BIG, new ViewInjector<OnePiece>(R.layout.item_big) {
+                .register( new ViewInjector<OnePiece>(R.layout.item_big) {
                     @Override
                     public void bindData(ViewHolder holder, final OnePiece item, int position) {
                         HeaderAndFooterActivity.this.bindData(holder, item);
                     }
                 })
-                .viewTypeLinker(new ViewTypeLinker<OnePiece>() {
+                .injectorFinder(new InjectorFinder<OnePiece>() {
                     @Override
-                    public int viewType(OnePiece item, int position) {
-                        return item.isBigType() ? VIEW_TYPE_BIG : VIEW_TYPE_NORMAL;
+                    public int index(OnePiece item, int position) {
+                        return item.isBigType() ? 1 : 0;
                     }
                 })
-                .headerView(header)
+                .headerView(header1)
+                .headerView(header2)
+                .headerView(header3)
                 .footerView(footer)
                 .itemClickListener(new LiteAdapter.OnItemClickListener() {
                     @Override
