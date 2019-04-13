@@ -13,6 +13,8 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.lang.ref.WeakReference;
 
 import me.yuu.liteadapter.loadmore.DefaultLoadMoreFooter;
@@ -48,9 +50,9 @@ public class LiteAdapter<T> extends AbstractAdapter<T> {
     /**
      * key: viewType    value: ViewInjector
      */
-    private final SparseArray<ViewInjector> mViewInjectors;
+    private final SparseArray<ViewInjector<T>> mViewInjectors;
 
-    private final InjectorFinder mInjectorFinder;
+    private final InjectorFinder<T> mInjectorFinder;
     private final MoreLoader mMoreLoader;
     private final View mEmptyView;
     private final LiteAdapter.OnItemClickListener mOnItemClickListener;
@@ -61,7 +63,7 @@ public class LiteAdapter<T> extends AbstractAdapter<T> {
         this.mEmptyView = builder.emptyView;
         this.mHerders = builder.headers;
         this.mFooters = builder.footers;
-        this.mInjectorFinder = builder.viewTypeLinker;
+        this.mInjectorFinder = builder.injectorFinder;
         this.mViewInjectors = builder.injectors;
         this.mOnItemClickListener = builder.onItemClickListener;
         this.mOnItemLongClickListener = builder.onItemLongClickListener;
@@ -167,8 +169,9 @@ public class LiteAdapter<T> extends AbstractAdapter<T> {
         return mViewInjectors.keyAt(index);
     }
 
+    @NotNull
     @Override
-    public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+    public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         if (viewType == VIEW_TYPE_EMPTY) {
             return new ViewHolder(mEmptyView);
         } else if (viewType == VIEW_TYPE_LOAD_MORE) {
@@ -194,29 +197,23 @@ public class LiteAdapter<T> extends AbstractAdapter<T> {
     }
 
     @Override
-    public void onBindViewHolder(ViewHolder holder, int position) {
+    public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         if (isHeader(position) || isFooter(position)
                 || isEmptyViewEnable() || isLoadMorePosition(position)) {
             return;
         }
 
-        final Object item = mDataSet.get(position - mHerders.size());
+        final T item = mDataSet.get(position - mHerders.size());
         int viewType = getItemViewType(position);
 
         Precondition.checkState(!isReservedType(viewType),
                 "You use the reserved view type : " + viewType);
 
-        ViewInjector injector = Precondition.checkNotNull(mViewInjectors.get(viewType),
+        ViewInjector<T> injector = Precondition.checkNotNull(mViewInjectors.get(viewType),
                 "You haven't registered this view type(" + viewType +
                         ") yet . Or you return the wrong view type in InjectorFinder.");
 
-        try {
-            injector.bindData(holder, item, position - mHerders.size());
-        } catch (ClassCastException e) {
-            throw new ClassCastException("Register wrong generic type."
-                    + "position = " + (position - mHerders.size())
-                    + "item class = " + item.getClass().getName());
-        }
+        injector.bindData(holder, item, position - mHerders.size());
 
         setupItemClickListener(holder);
         setupItemLongClickListener(holder);
@@ -258,7 +255,7 @@ public class LiteAdapter<T> extends AbstractAdapter<T> {
     }
 
     @Override
-    public void onAttachedToRecyclerView(RecyclerView recyclerView) {
+    public void onAttachedToRecyclerView(@NonNull RecyclerView recyclerView) {
         super.onAttachedToRecyclerView(recyclerView);
         if (mRecyclerView == null || mRecyclerView.get() == null) {
             mRecyclerView = new WeakReference<>(recyclerView);
@@ -296,7 +293,7 @@ public class LiteAdapter<T> extends AbstractAdapter<T> {
     }
 
     @Override
-    public void onDetachedFromRecyclerView(RecyclerView recyclerView) {
+    public void onDetachedFromRecyclerView(@NonNull RecyclerView recyclerView) {
         if (mMoreLoader != null) {
             recyclerView.removeOnScrollListener(mMoreLoader);
         }
@@ -304,7 +301,7 @@ public class LiteAdapter<T> extends AbstractAdapter<T> {
     }
 
     @Override
-    public void onViewAttachedToWindow(ViewHolder holder) {
+    public void onViewAttachedToWindow(@NonNull ViewHolder holder) {
         super.onViewAttachedToWindow(holder);
         ViewGroup.LayoutParams lp = holder.itemView.getLayoutParams();
         if (lp instanceof StaggeredGridLayoutManager.LayoutParams) {
@@ -433,12 +430,12 @@ public class LiteAdapter<T> extends AbstractAdapter<T> {
         private Context context;
         private View emptyView;
         private MoreLoader moreLoader;
-        private InjectorFinder viewTypeLinker;
+        private InjectorFinder<D> injectorFinder;
         private OnItemClickListener onItemClickListener;
         private OnItemLongClickListener onItemLongClickListener;
         private final SparseArray<View> headers = new SparseArray<>();
         private final SparseArray<View> footers = new SparseArray<>();
-        private final SparseArray<ViewInjector> injectors = new SparseArray<>();
+        private final SparseArray<ViewInjector<D>> injectors = new SparseArray<>();
 
         public Builder(Context context) {
             this.context = Precondition.checkNotNull(context);
@@ -468,9 +465,9 @@ public class LiteAdapter<T> extends AbstractAdapter<T> {
             return this;
         }
 
-        public Builder<D> injectorFinder(@NonNull InjectorFinder linker) {
-            Precondition.checkArgument(viewTypeLinker == null, "Only one InjectorFinder can be registered.");
-            this.viewTypeLinker = Precondition.checkNotNull(linker);
+        public Builder<D> injectorFinder(@NonNull InjectorFinder<D> linker) {
+            Precondition.checkArgument(injectorFinder == null, "Only one InjectorFinder can be registered.");
+            this.injectorFinder = Precondition.checkNotNull(linker);
             return this;
         }
 
@@ -507,7 +504,7 @@ public class LiteAdapter<T> extends AbstractAdapter<T> {
             return this;
         }
 
-        public <T> Builder<D> register(@NonNull ViewInjector<T> injector) {
+        public Builder<D> register(@NonNull ViewInjector<D> injector) {
             Precondition.checkNotNull(injector);
             int viewType = injectors.size() + 1;
             injectors.put(viewType, injector);
