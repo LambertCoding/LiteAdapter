@@ -1,4 +1,4 @@
- ![image](https://github.com/LambertCoding/LiteAdapter/blob/master/LiteAdapter.png)
+ ![image]()
  
 ## Features
 
@@ -19,13 +19,13 @@ allprojects {
 }
 
 // in module build.gradle
-compile 'com.github.LambertCoding:LiteAdapter:1.0.1'
+...
 ```
 ## Usages
 #### step 1: create adapter
 ```java
 adapter = new LiteAdapter.Builder<OnePiece>(this)
-        .register(VIEW_TYPE_NORMAL, new ViewInjector<OnePiece>(R.layout.item_normal) {
+        .register(new ViewInjector<OnePiece>(R.layout.item_normal) {
             @Override
             public void bindData(ViewHolder holder, final OnePiece item, int position) {
                 // step 2 : bind data
@@ -62,23 +62,23 @@ adapter.setNewData(data);
 ## Advanced usages
 ```java
 adapter = new LiteAdapter.Builder<OnePiece>(this)
-        .register(VIEW_TYPE_NORMAL, new ViewInjector<OnePiece>(R.layout.item_normal) {
+        .register(new ViewInjector<OnePiece>(R.layout.item_normal) {
             @Override
             public void bindData(ViewHolder holder, final OnePiece item, int position) {
                 // bindData
             }
         })
-        .register(VIEW_TYPE_BIG, new ViewInjector<OnePiece>(R.layout.item_big) {
+        .register(new ViewInjector<OnePiece>(R.layout.item_big) {
             @Override
             public void bindData(ViewHolder holder, final OnePiece item, int position) {
                 // bindData
             }
         })
-        // multi view type must set a viewTypeLinker
-        .viewTypeLinker(new ViewTypeLinker<OnePiece>() {
+        // multi view type must set a injectorFinder
+        .injectorFinder(new InjectorFinder<OnePiece>() {
             @Override
-            public int viewType(OnePiece item, int position) {
-                return item.isBigType() ? VIEW_TYPE_BIG : VIEW_TYPE_NORMAL;
+            public int index(OnePiece item, int position) {
+                return item.isBigType() ? 1 : 0;
             }
         })
         // empty view is disable if have header or footer view, not include load more footer
