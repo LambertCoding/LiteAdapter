@@ -17,6 +17,8 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.OrientationHelper;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.recyclerview.widget.StaggeredGridLayoutManager;
+import me.yuu.liteadapter.databinding.DataBindingInjector;
+import me.yuu.liteadapter.databinding.DataBindingViewHolder;
 import me.yuu.liteadapter.loadmore.DefaultLoadMoreFooter;
 import me.yuu.liteadapter.loadmore.ILoadMoreFooter;
 import me.yuu.liteadapter.loadmore.MoreLoader;
@@ -192,7 +194,12 @@ public class LiteAdapter<T> extends AbstractAdapter<T> {
 
             View itemView = LayoutInflater.from(parent.getContext())
                     .inflate(injector.getLayoutId(), parent, false);
-            return new ViewHolder(itemView);
+
+            if (injector instanceof DataBindingInjector) {
+                return new DataBindingViewHolder(itemView);
+            } else {
+                return new ViewHolder(itemView);
+            }
         }
     }
 
@@ -217,6 +224,7 @@ public class LiteAdapter<T> extends AbstractAdapter<T> {
 
         setupItemClickListener(holder);
         setupItemLongClickListener(holder);
+
     }
 
     private RecyclerView.LayoutParams generateLayoutParamsForHeaderAndFooter() {
@@ -230,28 +238,28 @@ public class LiteAdapter<T> extends AbstractAdapter<T> {
     }
 
     private void setupItemClickListener(final ViewHolder viewHolder) {
-        viewHolder.itemView.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (mOnItemClickListener != null) {
+        if (mOnItemClickListener != null) {
+            viewHolder.itemView.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
                     int position = viewHolder.getLayoutPosition() - mHerders.size();
                     mOnItemClickListener.onItemClick(position, mDataSet.get(position));
                 }
-            }
-        });
+            });
+        }
     }
 
     private void setupItemLongClickListener(final ViewHolder viewHolder) {
-        viewHolder.itemView.setOnLongClickListener(new View.OnLongClickListener() {
-            @Override
-            public boolean onLongClick(View view) {
-                if (mOnItemLongClickListener != null) {
+        if (mOnItemLongClickListener != null) {
+            viewHolder.itemView.setOnLongClickListener(new View.OnLongClickListener() {
+                @Override
+                public boolean onLongClick(View view) {
                     int position = viewHolder.getLayoutPosition() - mHerders.size();
                     mOnItemLongClickListener.onItemLongClick(position, mDataSet.get(position));
+                    return true;
                 }
-                return true;
-            }
-        });
+            });
+        }
     }
 
     @Override

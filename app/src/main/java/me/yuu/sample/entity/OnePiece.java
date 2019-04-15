@@ -1,4 +1,4 @@
-package me.yuu.sample;
+package me.yuu.sample.entity;
 
 /**
  * @author yu

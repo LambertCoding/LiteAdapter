@@ -7,6 +7,7 @@
 * Auto LoadMore
 * Header & Footer
 * Auto Empty View
+* support DataBinding
 
 ## Setup
 ```
@@ -23,92 +24,27 @@ allprojects {
 ```
 ## Usages
 #### step 1: create adapter
-```java
-adapter = new LiteAdapter.Builder<OnePiece>(this)
-        .register(new ViewInjector<OnePiece>(R.layout.item_normal) {
-            @Override
-            public void bindData(ViewHolder holder, final OnePiece item, int position) {
-                // step 2 : bind data
-            }
-        })
-        .create();
-recyclerView.setAdapter(adapter);
+```kotlin
+LiteAdapter.Builder<SampleEntity>(this)
+            .register(object : ViewInjector<SampleEntity>(R.layout.item_main) {
+                override fun bindData(holder: ViewHolder, item: SampleEntity, position: Int) {
+                    // step 2: bind data
+                }
+            })
+            .create()
+            .attachTo(recyclerView)
 ```
 #### step 2: bind data
-```java
+```kotlin
 holder.setText(R.id.tvDesc, item.getDesc())
         // .set...
-        .with(R.id.ivImage, new ViewHolder.Action<ImageView>() {
-            @Override
-            public void doAction(ImageView view) {
-                Glide.with(EmptyAndLoadMoreActivity.this)
-                        .load(item.getImageRes())
-                        .centerCrop()
-                        .into(view);
-            }
-        });
+        .with(R.id.ivImage, ViewHolder.Action<ImageView> { view -> doSomeThing() })
 ```
 
 #### step 3: Use LiteAdapter as normal adapter
-```java
-{
-    data.add(new OnePiece("我是要做海贼王的男人", R.mipmap.ic_lufei, false));
-    data.add(new OnePiece("路痴路痴路痴", R.mipmap.ic_suolong, false));
-    data.add(new OnePiece("色河童色河童色河童", R.mipmap.ic_shanzhi, false));
-}
-
-adapter.setNewData(data);
 ```
-## Advanced usages
-```java
-adapter = new LiteAdapter.Builder<OnePiece>(this)
-        .register(new ViewInjector<OnePiece>(R.layout.item_normal) {
-            @Override
-            public void bindData(ViewHolder holder, final OnePiece item, int position) {
-                // bindData
-            }
-        })
-        .register(new ViewInjector<OnePiece>(R.layout.item_big) {
-            @Override
-            public void bindData(ViewHolder holder, final OnePiece item, int position) {
-                // bindData
-            }
-        })
-        // multi view type must set a injectorFinder
-        .injectorFinder(new InjectorFinder<OnePiece>() {
-            @Override
-            public int index(OnePiece item, int position) {
-                return item.isBigType() ? 1 : 0;
-            }
-        })
-        // empty view is disable if have header or footer view, not include load more footer
-        .emptyView(emptyView)
-        // You can add multi header and footer layout
-        .headerView(headerView)
-        .footerView(footerView)
-        .enableLoadMore(new MoreLoader.LoadMoreListener() {
-            @Override
-            public void onLoadMore() {
-                loadMore();
-            }
-        })
-        .itemClickListener(new LiteAdapter.OnItemClickListener() {
-            @Override
-            public void onItemClick(int position, Object item) {
-
-            }
-        })
-        .itemLongClickListener(new LiteAdapter.OnItemLongClickListener() {
-            @Override
-            public void onItemLongClick(int position, Object item) {
-
-            }
-        })
-        .create();
-```
-## api
-```java
     D getItem(int position);
+    void setNewData(List<D> items);
     void addData(D item);
     void addData(int position, D item);
     void addAll(List<D> items);
@@ -116,7 +52,6 @@ adapter = new LiteAdapter.Builder<OnePiece>(this)
     void remove(int position);
     void modify(int position, D newData);
     void modify(int position, Action<D> action);
-    void setNewData(List<D> items);
     void clear();
 
     void addFooter(View footer);
@@ -128,6 +63,51 @@ adapter = new LiteAdapter.Builder<OnePiece>(this)
     void loadMoreCompleted();
     void loadMoreError();
     void noMore();
+
+```
+## Advanced usages
+```kotlin
+LiteAdapter.Builder<OnePiece>(this)
+                // register multi view type
+                .register(object : ViewInjector<OnePiece>(R.layout.item_normal) {
+                    override fun bindData(holder: ViewHolder, item: OnePiece, position: Int) {
+                        // bind data
+                    }
+                })
+                .register(object : ViewInjector<OnePiece>(R.layout.item_big) {
+                    override fun bindData(holder: ViewHolder, item: OnePiece, position: Int) {
+                        // bind data
+                    }
+                })
+                // multi view type must set a injectorFinder, return the index of injector
+                .injectorFinder { item, position -> if (item.isBigType) 1 else 0 }
+                .headerView(header)
+                .footerView(footer)
+                .emptyView(emptyView)
+                .enableLoadMore { loadMore() }
+                .itemClickListener { position, item -> doSomeThing() }
+                .itemLongClickListener { position, item -> doSomeThing() }
+                .create()
+```
+## DataBinding adapter
+```xml
+
+<layout xmlns:android="http://schemas.android.com/apk/res/android">
+    <data>
+        <!-- you must set a variable with id "item" -->
+        <variable
+            name="item"
+            type="xxx.xxx.XxEntity" />
+    </data>
+
+</layout>
+
+```
+
+```kotlin
+LiteAdapter.Builder<OnePiece>(this)
+                .register(DataBindingInjector(R.layout.item_big_data_binding))
+                .create()
 ```
 ## License
     MIT License
