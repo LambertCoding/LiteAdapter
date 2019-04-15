@@ -1,6 +1,6 @@
 package me.yuu.liteadapter.loadmore;
 
-import android.support.annotation.IntDef;
+import androidx.annotation.IntDef;
 import android.view.View;
 
 /**

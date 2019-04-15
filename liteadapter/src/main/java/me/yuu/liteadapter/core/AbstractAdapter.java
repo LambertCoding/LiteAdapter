@@ -1,11 +1,11 @@
 package me.yuu.liteadapter.core;
 
-import android.support.annotation.IntRange;
-import android.support.annotation.NonNull;
-import android.support.v7.widget.RecyclerView;
-
 import java.util.ArrayList;
 import java.util.List;
+
+import androidx.annotation.IntRange;
+import androidx.annotation.NonNull;
+import androidx.recyclerview.widget.RecyclerView;
 
 /**
  * @author yu

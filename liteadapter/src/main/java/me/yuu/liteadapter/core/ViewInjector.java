@@ -1,6 +1,6 @@
 package me.yuu.liteadapter.core;
 
-import android.support.annotation.LayoutRes;
+import androidx.annotation.LayoutRes;
 
 /**
  * @author yu

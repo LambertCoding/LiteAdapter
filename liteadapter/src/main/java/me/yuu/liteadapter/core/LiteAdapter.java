@@ -1,13 +1,6 @@
 package me.yuu.liteadapter.core;
 
 import android.content.Context;
-import android.support.annotation.LayoutRes;
-import android.support.annotation.NonNull;
-import android.support.v7.widget.GridLayoutManager;
-import android.support.v7.widget.LinearLayoutManager;
-import android.support.v7.widget.OrientationHelper;
-import android.support.v7.widget.RecyclerView;
-import android.support.v7.widget.StaggeredGridLayoutManager;
 import android.util.SparseArray;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -17,6 +10,13 @@ import org.jetbrains.annotations.NotNull;
 
 import java.lang.ref.WeakReference;
 
+import androidx.annotation.LayoutRes;
+import androidx.annotation.NonNull;
+import androidx.recyclerview.widget.GridLayoutManager;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.OrientationHelper;
+import androidx.recyclerview.widget.RecyclerView;
+import androidx.recyclerview.widget.StaggeredGridLayoutManager;
 import me.yuu.liteadapter.loadmore.DefaultLoadMoreFooter;
 import me.yuu.liteadapter.loadmore.ILoadMoreFooter;
 import me.yuu.liteadapter.loadmore.MoreLoader;
@@ -204,7 +204,7 @@ public class LiteAdapter<T> extends AbstractAdapter<T> {
         }
 
         final T item = mDataSet.get(position - mHerders.size());
-        int viewType = getItemViewType(position);
+        final int viewType = getItemViewType(position);
 
         Precondition.checkState(!isReservedType(viewType),
                 "You use the reserved view type : " + viewType);

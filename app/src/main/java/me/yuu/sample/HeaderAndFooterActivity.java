@@ -1,19 +1,20 @@
 package me.yuu.sample;
 
 import android.os.Bundle;
-import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.LinearLayoutManager;
-import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
+import com.bumptech.glide.request.RequestOptions;
 
 import java.util.ArrayList;
 import java.util.List;
 
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 import me.yuu.liteadapter.core.InjectorFinder;
 import me.yuu.liteadapter.core.LiteAdapter;
 import me.yuu.liteadapter.core.ViewHolder;
@@ -43,13 +44,13 @@ public class HeaderAndFooterActivity extends AppCompatActivity {
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
 
         adapter = new LiteAdapter.Builder<OnePiece>(this)
-                .register( new ViewInjector<OnePiece>(R.layout.item_normal) {
+                .register(new ViewInjector<OnePiece>(R.layout.item_normal) {
                     @Override
                     public void bindData(ViewHolder holder, final OnePiece item, int position) {
                         HeaderAndFooterActivity.this.bindData(holder, item);
                     }
                 })
-                .register( new ViewInjector<OnePiece>(R.layout.item_big) {
+                .register(new ViewInjector<OnePiece>(R.layout.item_big) {
                     @Override
                     public void bindData(ViewHolder holder, final OnePiece item, int position) {
                         HeaderAndFooterActivity.this.bindData(holder, item);
@@ -88,7 +89,7 @@ public class HeaderAndFooterActivity extends AppCompatActivity {
                     public void doAction(ImageView view) {
                         Glide.with(HeaderAndFooterActivity.this)
                                 .load(item.getImageRes())
-                                .centerCrop()
+                                .apply(new RequestOptions().centerCrop())
                                 .into(view);
                     }
                 });

@@ -1,6 +1,6 @@
 package me.yuu.liteadapter.util;
 
-import android.support.annotation.NonNull;
+import androidx.annotation.NonNull;
 
 /**
  * @author yu
