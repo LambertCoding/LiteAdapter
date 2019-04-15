@@ -6,7 +6,6 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
-import org.jetbrains.annotations.NotNull;
 
 import java.lang.ref.WeakReference;
 
@@ -171,7 +170,7 @@ public class LiteAdapter<T> extends AbstractAdapter<T> {
         return mViewInjectors.keyAt(index);
     }
 
-    @NotNull
+    @NonNull
     @Override
     public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         if (viewType == VIEW_TYPE_EMPTY) {

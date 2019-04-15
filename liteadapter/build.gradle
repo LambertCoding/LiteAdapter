@@ -1,5 +1,4 @@
 apply plugin: 'com.android.library'
-
 apply plugin: 'com.github.dcendents.android-maven'
 
 android {
@@ -29,5 +28,6 @@ android {
 
 dependencies {
     implementation fileTree(include: ['*.jar'], dir: 'libs')
+    implementation libs.appcompat
     implementation libs.recyclerview
 }
