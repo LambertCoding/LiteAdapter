@@ -20,7 +20,7 @@ allprojects {
 }
 
 // in module build.gradle
-implementation 'com.github.LambertCoding:LiteAdapter:1.0.3'
+implementation 'com.github.LambertCoding:LiteAdapter:1.0.4'
 ...
 ```
 ## Usages

@@ -179,11 +179,11 @@ public class LiteAdapter<T> extends AbstractAdapter<T> {
             return new ViewHolder(mMoreLoader.getLoadMoreFooterView());
         } else if (isHeaderType(viewType)) {
             View view = mHerders.get(viewType);
-            view.setLayoutParams(generateLayoutParamsForHeaderAndFooter());
+            view.setLayoutParams(generateLayoutParamsForHeaderAndFooter(view));
             return new ViewHolder(view);
         } else if (isFooterType(viewType)) {
             View view = mFooters.get(viewType);
-            view.setLayoutParams(generateLayoutParamsForHeaderAndFooter());
+            view.setLayoutParams(generateLayoutParamsForHeaderAndFooter(view));
             return new ViewHolder(view);
         } else {
             ViewInjector injector = mViewInjectors.get(viewType);
@@ -226,13 +226,13 @@ public class LiteAdapter<T> extends AbstractAdapter<T> {
 
     }
 
-    private RecyclerView.LayoutParams generateLayoutParamsForHeaderAndFooter() {
+    private RecyclerView.LayoutParams generateLayoutParamsForHeaderAndFooter(View view) {
         if (mOrientation == OrientationHelper.HORIZONTAL) {
-            return new RecyclerView.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT,
+            return new RecyclerView.LayoutParams(view.getLayoutParams().width,
                     ViewGroup.LayoutParams.MATCH_PARENT);
         } else {
             return new RecyclerView.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
-                    ViewGroup.LayoutParams.WRAP_CONTENT);
+                    view.getLayoutParams().height);
         }
     }
 
