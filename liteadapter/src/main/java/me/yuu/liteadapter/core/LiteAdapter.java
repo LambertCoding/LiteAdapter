@@ -75,7 +75,7 @@ public class LiteAdapter<T> extends AbstractAdapter<T> {
         return position + mHerders.size();
     }
 
-    public Object getRealItem(int position) {
+    public T getRealItem(int position) {
         if (isHeader(position) || isFooter(position)) {
             return null;
         }
