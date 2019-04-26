@@ -228,11 +228,11 @@ public class LiteAdapter<T> extends AbstractAdapter<T> {
 
     private RecyclerView.LayoutParams generateLayoutParamsForHeaderAndFooter(View view) {
         if (mOrientation == OrientationHelper.HORIZONTAL) {
-            return new RecyclerView.LayoutParams(view.getLayoutParams().width,
-                    ViewGroup.LayoutParams.MATCH_PARENT);
+            int width = view.getLayoutParams() == null ? ViewGroup.LayoutParams.WRAP_CONTENT : view.getLayoutParams().width;
+            return new RecyclerView.LayoutParams(width, ViewGroup.LayoutParams.MATCH_PARENT);
         } else {
-            return new RecyclerView.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
-                    view.getLayoutParams().height);
+            int height = view.getLayoutParams() == null ? ViewGroup.LayoutParams.WRAP_CONTENT : view.getLayoutParams().height;
+            return new RecyclerView.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, height);
         }
     }
 
