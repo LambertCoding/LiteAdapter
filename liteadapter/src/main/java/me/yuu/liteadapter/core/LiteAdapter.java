@@ -228,11 +228,41 @@ public class LiteAdapter<T> extends AbstractAdapter<T> {
 
     private RecyclerView.LayoutParams generateLayoutParamsForHeaderAndFooter(View view) {
         if (mOrientation == OrientationHelper.HORIZONTAL) {
-            int width = view.getLayoutParams() == null ? ViewGroup.LayoutParams.WRAP_CONTENT : view.getLayoutParams().width;
-            return new RecyclerView.LayoutParams(width, ViewGroup.LayoutParams.MATCH_PARENT);
+            ViewGroup.LayoutParams oldParams = view.getLayoutParams();
+
+            int marginLeft = 0, marginRight = 0, marginTop = 0, marginBottom = 0;
+            if (oldParams instanceof ViewGroup.MarginLayoutParams) {
+                ViewGroup.MarginLayoutParams marginLayoutParams = (ViewGroup.MarginLayoutParams) oldParams;
+                marginLeft = marginLayoutParams.leftMargin;
+                marginRight = marginLayoutParams.rightMargin;
+                marginTop = marginLayoutParams.topMargin;
+                marginBottom = marginLayoutParams.bottomMargin;
+            }
+
+            int width = oldParams == null ? ViewGroup.LayoutParams.WRAP_CONTENT : view.getLayoutParams().width;
+
+            RecyclerView.LayoutParams params = new RecyclerView.LayoutParams(width, ViewGroup.LayoutParams.MATCH_PARENT);
+            params.setMargins(marginLeft, marginTop, marginRight, marginBottom);
+
+            return params;
         } else {
+            ViewGroup.LayoutParams oldParams = view.getLayoutParams();
+
+            int marginLeft = 0, marginRight = 0, marginTop = 0, marginBottom = 0;
+            if (oldParams instanceof ViewGroup.MarginLayoutParams) {
+                ViewGroup.MarginLayoutParams marginLayoutParams = (ViewGroup.MarginLayoutParams) oldParams;
+                marginLeft = marginLayoutParams.leftMargin;
+                marginRight = marginLayoutParams.rightMargin;
+                marginTop = marginLayoutParams.topMargin;
+                marginBottom = marginLayoutParams.bottomMargin;
+            }
+
             int height = view.getLayoutParams() == null ? ViewGroup.LayoutParams.WRAP_CONTENT : view.getLayoutParams().height;
-            return new RecyclerView.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, height);
+
+            RecyclerView.LayoutParams params = new RecyclerView.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, height);
+            params.setMargins(marginLeft, marginTop, marginRight, marginBottom);
+
+            return params;
         }
     }
 
