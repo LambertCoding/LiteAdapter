@@ -6,9 +6,6 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
-
-import java.lang.ref.WeakReference;
-
 import androidx.annotation.LayoutRes;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.GridLayoutManager;
@@ -16,6 +13,9 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.OrientationHelper;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.recyclerview.widget.StaggeredGridLayoutManager;
+
+import java.lang.ref.WeakReference;
+
 import me.yuu.liteadapter.databinding.DataBindingInjector;
 import me.yuu.liteadapter.databinding.DataBindingViewHolder;
 import me.yuu.liteadapter.loadmore.DefaultLoadMoreFooter;
@@ -194,11 +194,17 @@ public class LiteAdapter<T> extends AbstractAdapter<T> {
             View itemView = LayoutInflater.from(parent.getContext())
                     .inflate(injector.getLayoutId(), parent, false);
 
+            ViewHolder holder;
             if (injector instanceof DataBindingInjector) {
-                return new DataBindingViewHolder(itemView);
+                holder = new DataBindingViewHolder(itemView);
             } else {
-                return new ViewHolder(itemView);
+                holder = new ViewHolder(itemView);
             }
+
+            setupItemClickListener(holder);
+            setupItemLongClickListener(holder);
+
+            return holder;
         }
     }
 
@@ -220,10 +226,6 @@ public class LiteAdapter<T> extends AbstractAdapter<T> {
                         ") yet . Or you return the wrong view type in InjectorFinder.");
 
         injector.bindData(holder, item, position - mHerders.size());
-
-        setupItemClickListener(holder);
-        setupItemLongClickListener(holder);
-
     }
 
     private RecyclerView.LayoutParams generateLayoutParamsForHeaderAndFooter(View view) {
