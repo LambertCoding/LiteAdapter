@@ -56,22 +56,53 @@ public class LiteAdapter<T> extends AbstractAdapter<T> {
     private final InjectorFinder<T> mInjectorFinder;
     private final MoreLoader mMoreLoader;
     private final View mEmptyView;
-    private final LiteAdapter.OnItemClickListener mOnItemClickListener;
-    private final LiteAdapter.OnItemLongClickListener mOnItemLongClickListener;
+    private LiteAdapter.OnItemClickListener mOnItemClickListener;
+    private LiteAdapter.OnItemLongClickListener mOnItemLongClickListener;
 
-    private LiteAdapter(Builder<T> builder) {
-        this.mMoreLoader = builder.moreLoader;
-        this.mEmptyView = builder.emptyView;
-        this.mHerders = builder.headers;
-        this.mFooters = builder.footers;
-        this.mInjectorFinder = builder.injectorFinder;
-        this.mViewInjectors = builder.injectors;
-        this.mOnItemClickListener = builder.onItemClickListener;
-        this.mOnItemLongClickListener = builder.onItemLongClickListener;
+    public LiteAdapter(
+            MoreLoader moreLoader,
+            View emptyView,
+            SparseArray<View> headers,
+            SparseArray<View> footers,
+            InjectorFinder<T> injectorFinder,
+            SparseArray<ViewInjector<T>> injectors,
+            LiteAdapter.OnItemClickListener onItemClickListener,
+            LiteAdapter.OnItemLongClickListener onItemLongClickListener
+    ) {
+        this.mMoreLoader = moreLoader;
+        this.mEmptyView = emptyView;
+        this.mHerders = headers;
+        this.mFooters = footers;
+        this.mInjectorFinder = injectorFinder;
+        this.mViewInjectors = injectors;
+        this.mOnItemClickListener = onItemClickListener;
+        this.mOnItemLongClickListener = onItemLongClickListener;
     }
 
-    public LiteAdapter(Context context) {
-        this(new Builder<T>(context));
+    public LiteAdapter(Builder<T> builder) {
+        this(
+                builder.moreLoader,
+                builder.emptyView,
+                builder.headers,
+                builder.footers,
+                builder.injectorFinder,
+                builder.injectors,
+                builder.onItemClickListener,
+                builder.onItemLongClickListener
+        );
+    }
+
+    public LiteAdapter(LiteAdapter<T> adapter) {
+        this(
+                adapter.getMoreLoader(),
+                adapter.getEmptyView(),
+                adapter.getHerders(),
+                adapter.getFooters(),
+                adapter.getInjectorFinder(),
+                adapter.getViewInjectors(),
+                adapter.getOnItemClickListener(),
+                adapter.getOnItemLongClickListener()
+        );
     }
 
     @Override
@@ -557,5 +588,45 @@ public class LiteAdapter<T> extends AbstractAdapter<T> {
         public LiteAdapter<D> create() {
             return new LiteAdapter<>(this);
         }
+    }
+
+    public SparseArray<View> getHerders() {
+        return mHerders;
+    }
+
+    public SparseArray<View> getFooters() {
+        return mFooters;
+    }
+
+    public SparseArray<ViewInjector<T>> getViewInjectors() {
+        return mViewInjectors;
+    }
+
+    public InjectorFinder<T> getInjectorFinder() {
+        return mInjectorFinder;
+    }
+
+    public MoreLoader getMoreLoader() {
+        return mMoreLoader;
+    }
+
+    public View getEmptyView() {
+        return mEmptyView;
+    }
+
+    public OnItemClickListener getOnItemClickListener() {
+        return mOnItemClickListener;
+    }
+
+    public OnItemLongClickListener getOnItemLongClickListener() {
+        return mOnItemLongClickListener;
+    }
+
+    public void setOnItemClickListener(OnItemClickListener mOnItemClickListener) {
+        this.mOnItemClickListener = mOnItemClickListener;
+    }
+
+    public void setOnItemLongClickListener(OnItemLongClickListener mOnItemLongClickListener) {
+        this.mOnItemLongClickListener = mOnItemLongClickListener;
     }
 }
