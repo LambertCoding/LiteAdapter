@@ -70,6 +70,10 @@ public class LiteAdapter<T> extends AbstractAdapter<T> {
         this.mOnItemLongClickListener = builder.onItemLongClickListener;
     }
 
+    public LiteAdapter(Context context) {
+        this(new Builder<T>(context));
+    }
+
     @Override
     protected int adjustNotifyPosition(int position) {
         return position + mHerders.size();
@@ -97,7 +101,7 @@ public class LiteAdapter<T> extends AbstractAdapter<T> {
 
     private boolean isHeader(int position) {
         int headersCount = mHerders.size();
-        return headersCount > 0 && position >= 0 && position < headersCount;
+        return position >= 0 && position < headersCount;
     }
 
     private boolean isFooter(int position) {
