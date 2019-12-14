@@ -59,7 +59,7 @@ class EmptyAndLoadMoreActivity : BaseActivity() {
                         bindData2View(holder, item)
                     }
                 })
-                .injectorFinder { item, _ -> if (item.isBigType) 1 else 0 }
+                .injectorFinder { item, _, _ -> if (item.isBigType) 1 else 0 }
                 .emptyView(emptyView)
                 .enableLoadMore { loadMore() }
                 .itemClickListener { position, _ -> showToast("position = $position") }

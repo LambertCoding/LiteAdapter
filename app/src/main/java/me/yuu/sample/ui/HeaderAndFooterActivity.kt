@@ -34,7 +34,7 @@ class HeaderAndFooterActivity : BaseActivity() {
                         bindData2View(holder, item)
                     }
                 })
-                .injectorFinder { item, _ -> if (item.isBigType) 1 else 0 }
+                .injectorFinder { item, _, _ -> if (item.isBigType) 1 else 0 }
                 .headerView(header1)
                 .headerView(header2)
                 .headerView(header3)

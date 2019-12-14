@@ -32,6 +32,7 @@ import me.yuu.liteadapter.util.Utils;
  */
 public class LiteAdapter<T> extends AbstractAdapter<T> {
 
+
     private static final int VIEW_TYPE_EMPTY = -7061;
     private static final int VIEW_TYPE_LOAD_MORE = -7062;
     private static final int VIEW_TYPE_HEADER_INDEX = -7060;
@@ -117,41 +118,41 @@ public class LiteAdapter<T> extends AbstractAdapter<T> {
         return mDataSet.get(position - mHerders.size());
     }
 
-    private boolean isReservedType(int viewType) {
+    protected boolean isReservedType(int viewType) {
         return viewType == VIEW_TYPE_EMPTY || viewType == VIEW_TYPE_LOAD_MORE
                 || isHeaderType(viewType) || isFooterType(viewType);
     }
 
-    private boolean isHeaderType(int viewType) {
+    protected boolean isHeaderType(int viewType) {
         return mHerders.size() > 0 && mHerders.get(viewType) != null;
     }
 
-    private boolean isFooterType(int viewType) {
+    protected boolean isFooterType(int viewType) {
         return mFooters.size() > 0 && mFooters.get(viewType) != null;
     }
 
-    private boolean isHeader(int position) {
+    protected boolean isHeader(int position) {
         int headersCount = mHerders.size();
         return position >= 0 && position < headersCount;
     }
 
-    private boolean isFooter(int position) {
+    protected boolean isFooter(int position) {
         int headerAndDataCount = mHerders.size() + mDataSet.size();
         return mFooters.size() > 0 && position >= headerAndDataCount
                 && position < headerAndDataCount + mFooters.size();
     }
 
-    private boolean isEmptyViewEnable() {
+    protected boolean isEmptyViewEnable() {
         // Disable the empty view if have header view or footer view.
         // not included loadMoreFooter view
         return mEmptyView != null && mDataSet.size() + mHerders.size() + mFooters.size() == 0;
     }
 
-    private boolean isLoadMoreEnable() {
+    protected boolean isLoadMoreEnable() {
         return mMoreLoader != null && mMoreLoader.isLoadMoreEnable();
     }
 
-    private boolean isLoadMorePosition(int position) {
+    protected boolean isLoadMorePosition(int position) {
         return position == mDataSet.size() + mHerders.size() + mFooters.size();
     }
 
@@ -188,7 +189,7 @@ public class LiteAdapter<T> extends AbstractAdapter<T> {
         return getViewTypeFromInjectors(position);
     }
 
-    private int getViewTypeFromInjectors(int position) {
+    protected int getViewTypeFromInjectors(int position) {
         Precondition.checkState(mViewInjectors.size() != 0, "No view type is registered.");
 
         int index = 0;
@@ -196,7 +197,7 @@ public class LiteAdapter<T> extends AbstractAdapter<T> {
             Precondition.checkNotNull(mInjectorFinder,
                     "Multiple view types are registered. You must set a ViewTypeInjector for LiteAdapter");
             int adjustPosition = position - mHerders.size();
-            index = mInjectorFinder.index(mDataSet.get(adjustPosition), adjustPosition);
+            index = mInjectorFinder.index(mDataSet.get(adjustPosition), adjustPosition, getItemCount());
 
             Precondition.checkArgument(index >= 0 && index < mViewInjectors.size(),
                     "return wrong index = " + index + " in InjectorFinder, You have registered"
@@ -221,26 +222,30 @@ public class LiteAdapter<T> extends AbstractAdapter<T> {
             view.setLayoutParams(generateLayoutParamsForHeaderAndFooter(view));
             return new ViewHolder(view);
         } else {
-            ViewInjector injector = mViewInjectors.get(viewType);
-
-            Precondition.checkNotNull(injector, "You haven't registered this view type("
-                    + viewType + ") yet . Or you return the wrong view type in InjectorFinder.");
-
-            View itemView = LayoutInflater.from(parent.getContext())
-                    .inflate(injector.getLayoutId(), parent, false);
-
-            ViewHolder holder;
-            if (injector instanceof DataBindingInjector) {
-                holder = new DataBindingViewHolder(itemView);
-            } else {
-                holder = new ViewHolder(itemView);
-            }
-
-            setupItemClickListener(holder);
-            setupItemLongClickListener(holder);
-
-            return holder;
+            return createWithInjector(parent, viewType);
         }
+    }
+
+    protected ViewHolder createWithInjector(@NonNull ViewGroup parent, int viewType) {
+        ViewInjector injector = mViewInjectors.get(viewType);
+
+        Precondition.checkNotNull(injector, "You haven't registered this view type("
+                + viewType + ") yet . Or you return the wrong view type in InjectorFinder.");
+
+        View itemView = LayoutInflater.from(parent.getContext())
+                .inflate(injector.getLayoutId(), parent, false);
+
+        ViewHolder holder;
+        if (injector instanceof DataBindingInjector) {
+            holder = new DataBindingViewHolder(itemView);
+        } else {
+            holder = new ViewHolder(itemView);
+        }
+
+        setupItemClickListener(holder);
+        setupItemLongClickListener(holder);
+
+        return holder;
     }
 
     @Override
@@ -250,6 +255,10 @@ public class LiteAdapter<T> extends AbstractAdapter<T> {
             return;
         }
 
+        bindFromViewInjector(holder, position);
+    }
+
+    protected void bindFromViewInjector(@NonNull ViewHolder holder, int position) {
         final T item = mDataSet.get(position - mHerders.size());
         final int viewType = getItemViewType(position);
 
@@ -303,7 +312,7 @@ public class LiteAdapter<T> extends AbstractAdapter<T> {
         }
     }
 
-    private void setupItemClickListener(final ViewHolder viewHolder) {
+    protected void setupItemClickListener(final ViewHolder viewHolder) {
         if (mOnItemClickListener != null) {
             viewHolder.itemView.setOnClickListener(new View.OnClickListener() {
                 @Override
@@ -315,7 +324,7 @@ public class LiteAdapter<T> extends AbstractAdapter<T> {
         }
     }
 
-    private void setupItemLongClickListener(final ViewHolder viewHolder) {
+    protected void setupItemLongClickListener(final ViewHolder viewHolder) {
         if (mOnItemLongClickListener != null) {
             viewHolder.itemView.setOnLongClickListener(new View.OnLongClickListener() {
                 @Override
