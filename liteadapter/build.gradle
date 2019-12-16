@@ -28,6 +28,6 @@ android {
 
 dependencies {
     implementation fileTree(include: ['*.jar'], dir: 'libs')
-    implementation libs.appcompat
-    implementation libs.recyclerview
+    compileOnly libs.appcompat
+    compileOnly libs.recyclerview
 }
