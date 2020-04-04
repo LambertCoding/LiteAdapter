@@ -9,7 +9,7 @@ import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
-import me.yuu.liteadapter.util.Utils;
+import me.yuu.liteadapter.util.LiteAdapterUtils;
 
 /**
  * @author yu
@@ -42,18 +42,18 @@ public class DefaultLoadMoreFooter extends LinearLayout implements ILoadMoreFoot
 
     public void initView(Context context) {
         ViewGroup.LayoutParams layoutParams = new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
-                Utils.dp2px(context, 50));
+                LiteAdapterUtils.dp2px(context, 50));
         setLayoutParams(layoutParams);
         setOrientation(HORIZONTAL);
         setGravity(Gravity.CENTER);
 
-        LayoutParams pbParams = new LayoutParams(Utils.dp2px(context, 25), Utils.dp2px(context, 25));
+        LayoutParams pbParams = new LayoutParams(LiteAdapterUtils.dp2px(context, 25), LiteAdapterUtils.dp2px(context, 25));
         mProgressBar = new ProgressBar(context);
         mProgressBar.setLayoutParams(pbParams);
         addView(mProgressBar);
 
         LayoutParams textParams = new LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.MATCH_PARENT);
-        textParams.leftMargin = Utils.dp2px(context, 10);
+        textParams.leftMargin = LiteAdapterUtils.dp2px(context, 10);
         mText = new TextView(context);
         mText.setTextSize(14);
         mText.setLayoutParams(textParams);

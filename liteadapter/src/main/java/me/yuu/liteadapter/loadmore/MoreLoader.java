@@ -1,9 +1,11 @@
 package me.yuu.liteadapter.loadmore;
 
-import androidx.recyclerview.widget.RecyclerView;
 import android.view.View;
 
-import me.yuu.liteadapter.util.Utils;
+import androidx.annotation.NonNull;
+import androidx.recyclerview.widget.RecyclerView;
+
+import me.yuu.liteadapter.util.LiteAdapterUtils;
 
 /**
  * @author yu
@@ -54,7 +56,7 @@ public class MoreLoader extends RecyclerView.OnScrollListener {
     }
 
     @Override
-    public void onScrollStateChanged(RecyclerView recyclerView, int newState) {
+    public void onScrollStateChanged(@NonNull RecyclerView recyclerView, int newState) {
         super.onScrollStateChanged(recyclerView, newState);
         if (!isLoadMoreEnable) {
             return;
@@ -69,7 +71,9 @@ public class MoreLoader extends RecyclerView.OnScrollListener {
                 }
 
                 RecyclerView.LayoutManager layoutManager = recyclerView.getLayoutManager();
-                int lastPosition = Utils.findLastCompletelyVisibleItemPosition(layoutManager);
+                if (layoutManager == null) return;
+
+                int lastPosition = LiteAdapterUtils.findLastCompletelyVisibleItemPosition(layoutManager);
 
                 if (layoutManager.getChildCount() > 0
                         && lastPosition >= layoutManager.getItemCount() - 1) {

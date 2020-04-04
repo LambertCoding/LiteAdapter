@@ -6,6 +6,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import me.yuu.liteadapter.core.LiteAdapter
+import me.yuu.liteadapter.core.SimpleAdapter
 import me.yuu.liteadapter.core.ViewHolder
 import me.yuu.liteadapter.core.ViewInjector
 import me.yuu.sample.R
@@ -26,7 +27,7 @@ class MainActivity : AppCompatActivity() {
         val recyclerView = findViewById<RecyclerView>(R.id.recyclerView)
         recyclerView.layoutManager = LinearLayoutManager(this)
 
-        val adapter = LiteAdapter.Builder<SampleEntity>(this)
+        val adapter = SimpleAdapter.Builder<SampleEntity>(this)
                 .register(object : ViewInjector<SampleEntity>(R.layout.item_main) {
                     override fun bindData(holder: ViewHolder, item: SampleEntity, position: Int) {
                         holder.setText(R.id.tvDesc, item.name)

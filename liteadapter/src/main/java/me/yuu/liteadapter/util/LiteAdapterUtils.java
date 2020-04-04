@@ -11,7 +11,7 @@ import androidx.recyclerview.widget.StaggeredGridLayoutManager;
  * @date 2018/1/12
  */
 
-public class Utils {
+public class LiteAdapterUtils {
 
     public static int dp2px(Context context, final float dpValue) {
         final float scale = context.getResources().getDisplayMetrics().density;

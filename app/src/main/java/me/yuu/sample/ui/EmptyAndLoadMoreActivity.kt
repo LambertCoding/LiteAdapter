@@ -45,6 +45,12 @@ class EmptyAndLoadMoreActivity : BaseActivity() {
     }
 
     override fun createAdapter(): LiteAdapter<OnePiece> {
+        val inflater = LayoutInflater.from(this)
+        val header1 = inflater.inflate(R.layout.item_header, null)
+        val header2 = inflater.inflate(R.layout.item_header, null)
+        val header3 = inflater.inflate(R.layout.item_header, null)
+        val footer = inflater.inflate(R.layout.item_footer, null)
+
         val emptyView = LayoutInflater.from(this).inflate(R.layout.empty_view, null)
                 .apply { setOnClickListener { refresh() } }
 
@@ -61,6 +67,10 @@ class EmptyAndLoadMoreActivity : BaseActivity() {
                 })
                 .injectorFinder { item, _, _ -> if (item.isBigType) 1 else 0 }
                 .emptyView(emptyView)
+                .headerView(header1)
+                .headerView(header2)
+                .headerView(header3)
+//                .footerView(footer) // footer和loadMore互斥，如果添加了footer就不能加载更多
                 .enableLoadMore { loadMore() }
                 .itemClickListener { position, _ -> showToast("position = $position") }
                 .itemLongClickListener { position, _ -> adapter.remove(position) }

@@ -16,13 +16,11 @@ import androidx.recyclerview.widget.StaggeredGridLayoutManager;
 
 import java.lang.ref.WeakReference;
 
-import me.yuu.liteadapter.databinding.DataBindingInjector;
-import me.yuu.liteadapter.databinding.DataBindingViewHolder;
 import me.yuu.liteadapter.loadmore.DefaultLoadMoreFooter;
 import me.yuu.liteadapter.loadmore.ILoadMoreFooter;
 import me.yuu.liteadapter.loadmore.MoreLoader;
+import me.yuu.liteadapter.util.LiteAdapterUtils;
 import me.yuu.liteadapter.util.Precondition;
-import me.yuu.liteadapter.util.Utils;
 
 /**
  * RecyclerView的通用Adapter
@@ -30,12 +28,12 @@ import me.yuu.liteadapter.util.Utils;
  * @author yu
  * @date 2018/1/12
  */
-public class LiteAdapter<T> extends AbstractAdapter<T> {
+public class LiteAdapter<T> extends SimpleAdapter<T> {
 
-    protected static final int VIEW_TYPE_EMPTY = -7061;
-    protected static final int VIEW_TYPE_LOAD_MORE = -7062;
-    protected static final int VIEW_TYPE_HEADER_INDEX = -7060;
-    protected static final int VIEW_TYPE_FOOTER_INDEX = -8060;
+    private static final int VIEW_TYPE_EMPTY = -7061;
+    private static final int VIEW_TYPE_LOAD_MORE = -7062;
+    private static final int VIEW_TYPE_HEADER_INDEX = -7060;
+    private static final int VIEW_TYPE_FOOTER_INDEX = -8060;
 
     private WeakReference<RecyclerView> mRecyclerView;
     private int mOrientation;
@@ -48,20 +46,19 @@ public class LiteAdapter<T> extends AbstractAdapter<T> {
      * key: viewType    value: footerView
      */
     private SparseArray<View> mFooters;
-    /**
-     * key: viewType    value: ViewInjector
-     */
-    private final SparseArray<ViewInjector<T>> mViewInjectors;
 
-    private final InjectorFinder<T> mInjectorFinder;
     private final MoreLoader mMoreLoader;
     private final View mEmptyView;
-    private LiteAdapter.OnItemClickListener mOnItemClickListener;
-    private LiteAdapter.OnItemLongClickListener mOnItemLongClickListener;
+
+    /**
+     * 空布局是否要保持header和footer
+     */
+    private boolean mIsKeepHeaderAndFooter;
 
     public LiteAdapter(
             MoreLoader moreLoader,
             View emptyView,
+            boolean keepHeaderAndFooter,
             SparseArray<View> headers,
             SparseArray<View> footers,
             InjectorFinder<T> injectorFinder,
@@ -69,33 +66,19 @@ public class LiteAdapter<T> extends AbstractAdapter<T> {
             LiteAdapter.OnItemClickListener onItemClickListener,
             LiteAdapter.OnItemLongClickListener onItemLongClickListener
     ) {
+        super(injectors, injectorFinder, onItemClickListener, onItemLongClickListener);
         this.mMoreLoader = moreLoader;
         this.mEmptyView = emptyView;
         this.mHerders = headers;
+        this.mIsKeepHeaderAndFooter = keepHeaderAndFooter;
         this.mFooters = footers;
-        this.mInjectorFinder = injectorFinder;
-        this.mViewInjectors = injectors;
-        this.mOnItemClickListener = onItemClickListener;
-        this.mOnItemLongClickListener = onItemLongClickListener;
     }
 
-    public LiteAdapter(Builder<T> builder) {
-        this(
-                builder.moreLoader,
-                builder.emptyView,
-                builder.headers,
-                builder.footers,
-                builder.injectorFinder,
-                builder.injectors,
-                builder.onItemClickListener,
-                builder.onItemLongClickListener
-        );
-    }
-
-    public LiteAdapter(LiteAdapter<T> adapter) {
-        this(
+    public LiteAdapter<T> copyFrom(LiteAdapter<T> adapter) {
+        return new LiteAdapter<>(
                 adapter.getMoreLoader(),
                 adapter.getEmptyView(),
+                adapter.isKeepHeaderAndFooter(),
                 adapter.getHerders(),
                 adapter.getFooters(),
                 adapter.getInjectorFinder(),
@@ -107,19 +90,25 @@ public class LiteAdapter<T> extends AbstractAdapter<T> {
 
     @Override
     public int getItemCount() {
-        if (isEmptyViewEnable()) {
-            return 1;
-        }
         int itemCount = mDataSet.size() + mHerders.size() + mFooters.size();
-        if (isLoadMoreEnable()) {
-            itemCount++;
+
+        if (isEmptyViewEnable()) {
+            if (mIsKeepHeaderAndFooter) {
+                itemCount++;
+            } else {
+                itemCount = 1;
+            }
+        } else {
+            // 数据不为空，loadMore可用则+1
+            if (isLoadMoreEnable())
+                itemCount++;
         }
         return itemCount;
     }
 
     @Override
     public int getItemViewType(int position) {
-        if (isEmptyViewEnable()) {
+        if (isEmptyViewPosition(position)) {
             return VIEW_TYPE_EMPTY;
         }
 
@@ -128,31 +117,16 @@ public class LiteAdapter<T> extends AbstractAdapter<T> {
         }
 
         if (isFooter(position)) {
-            return mFooters.keyAt(position - mHerders.size() - mDataSet.size());
+            int index = position - mHerders.size() - mDataSet.size();
+            if (isEmptyViewEnable()) index--;
+            return mFooters.keyAt(index);
         }
 
         if (isLoadMoreEnable() && isLoadMorePosition(position)) {
             return VIEW_TYPE_LOAD_MORE;
         }
 
-        return getViewTypeFromInjectors(position);
-    }
-
-    protected int getViewTypeFromInjectors(int position) {
-        Precondition.checkState(mViewInjectors.size() != 0, "No view type is registered.");
-
-        int index = 0;
-        if (mViewInjectors.size() > 1) {
-            Precondition.checkNotNull(mInjectorFinder,
-                    "Multiple view types are registered. You must set a ViewTypeInjector for LiteAdapter");
-            int adjustPosition = position - mHerders.size();
-            index = mInjectorFinder.index(mDataSet.get(adjustPosition), adjustPosition, getItemCount());
-
-            Precondition.checkArgument(index >= 0 && index < mViewInjectors.size(),
-                    "return wrong index = " + index + " in InjectorFinder, You have registered"
-                            + mViewInjectors.size() + " ViewInjector!");
-        }
-        return mViewInjectors.keyAt(index);
+        return super.getItemViewType(position);
     }
 
     @NonNull
@@ -171,54 +145,17 @@ public class LiteAdapter<T> extends AbstractAdapter<T> {
             view.setLayoutParams(generateLayoutParamsForHeaderAndFooter(view));
             return new ViewHolder(view);
         } else {
-            ViewInjector injector = mViewInjectors.get(viewType);
-
-            Precondition.checkNotNull(injector, "You haven't registered this view type("
-                    + viewType + ") yet . Or you return the wrong view type in InjectorFinder.");
-
-            View itemView = LayoutInflater.from(parent.getContext())
-                    .inflate(injector.getLayoutId(), parent, false);
-
-            ViewHolder holder = createDataItemViewHolder(itemView, injector);
-
-            setupItemClickListener(holder);
-            setupItemLongClickListener(holder);
-
-            return holder;
+            return super.onCreateViewHolder(parent, viewType);
         }
-    }
-
-    protected ViewHolder createDataItemViewHolder(View itemView, ViewInjector injector) {
-        ViewHolder holder;
-        if (injector instanceof DataBindingInjector) {
-            holder = new DataBindingViewHolder(itemView);
-        } else {
-            holder = new ViewHolder(itemView);
-        }
-        return holder;
     }
 
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         if (isHeader(position) || isFooter(position)
-                || isEmptyViewEnable() || isLoadMorePosition(position)) {
+                || isEmptyViewPosition(position) || isLoadMorePosition(position)) {
             return;
         }
-        bindFromViewInjector(holder, position);
-    }
-
-    protected void bindFromViewInjector(@NonNull ViewHolder holder, int position) {
-        final T item = mDataSet.get(position - mHerders.size());
-        final int viewType = getItemViewType(position);
-
-        Precondition.checkState(!isReservedType(viewType),
-                "You use the reserved view type : " + viewType);
-
-        ViewInjector<T> injector = Precondition.checkNotNull(mViewInjectors.get(viewType),
-                "You haven't registered this view type(" + viewType +
-                        ") yet . Or you return the wrong view type in InjectorFinder.");
-
-        injector.bindData(holder, item, position - mHerders.size());
+        super.onBindViewHolder(holder, position);
     }
 
     private RecyclerView.LayoutParams generateLayoutParamsForHeaderAndFooter(View view) {
@@ -261,31 +198,6 @@ public class LiteAdapter<T> extends AbstractAdapter<T> {
         }
     }
 
-    protected void setupItemClickListener(final ViewHolder viewHolder) {
-        if (mOnItemClickListener != null) {
-            viewHolder.itemView.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    int position = viewHolder.getLayoutPosition() - mHerders.size();
-                    mOnItemClickListener.onItemClick(position, mDataSet.get(position));
-                }
-            });
-        }
-    }
-
-    protected void setupItemLongClickListener(final ViewHolder viewHolder) {
-        if (mOnItemLongClickListener != null) {
-            viewHolder.itemView.setOnLongClickListener(new View.OnLongClickListener() {
-                @Override
-                public boolean onLongClick(View view) {
-                    int position = viewHolder.getLayoutPosition() - mHerders.size();
-                    mOnItemLongClickListener.onItemLongClick(position, mDataSet.get(position));
-                    return true;
-                }
-            });
-        }
-    }
-
     @Override
     public void onAttachedToRecyclerView(@NonNull RecyclerView recyclerView) {
         super.onAttachedToRecyclerView(recyclerView);
@@ -297,7 +209,7 @@ public class LiteAdapter<T> extends AbstractAdapter<T> {
 
         setSpanSizeLookup4Grid(recyclerView);
 
-        if (mMoreLoader != null) {
+        if (mMoreLoader != null && mFooters.size() == 0) {
             recyclerView.addOnScrollListener(mMoreLoader);
         }
     }
@@ -309,11 +221,10 @@ public class LiteAdapter<T> extends AbstractAdapter<T> {
             gridManager.setSpanSizeLookup(new GridLayoutManager.SpanSizeLookup() {
                 @Override
                 public int getSpanSize(int position) {
-                    return (isEmptyViewEnable()
+                    return (isEmptyViewPosition(position)
                             || isHeader(position)
                             || isFooter(position)
-                            || isLoadMorePosition(position))
-                            ? gridManager.getSpanCount() : 1;
+                            || isLoadMorePosition(position)) ? gridManager.getSpanCount() : 1;
                 }
             });
         }
@@ -331,9 +242,8 @@ public class LiteAdapter<T> extends AbstractAdapter<T> {
 
     @Override
     public void onDetachedFromRecyclerView(@NonNull RecyclerView recyclerView) {
-        if (mMoreLoader != null) {
+        if (mMoreLoader != null)
             recyclerView.removeOnScrollListener(mMoreLoader);
-        }
         super.onDetachedFromRecyclerView(recyclerView);
     }
 
@@ -347,7 +257,7 @@ public class LiteAdapter<T> extends AbstractAdapter<T> {
         ViewGroup.LayoutParams lp = holder.itemView.getLayoutParams();
         if (lp instanceof StaggeredGridLayoutManager.LayoutParams) {
             int position = holder.getLayoutPosition();
-            if (isEmptyViewEnable()
+            if (isEmptyViewPosition(position)
                     || isHeader(position)
                     || isFooter(position)
                     || isLoadMorePosition(position)) {
@@ -416,19 +326,17 @@ public class LiteAdapter<T> extends AbstractAdapter<T> {
     }
 
     private void disableLoadMoreIfNotFullPage(RecyclerView recyclerView) {
-        if (recyclerView == null) {
-            return;
-        }
+        if (recyclerView == null) return;
+
         final RecyclerView.LayoutManager manager = recyclerView.getLayoutManager();
-        if (manager == null) {
-            return;
-        }
+
+        if (manager == null) return;
 
         recyclerView.postDelayed(new Runnable() {
             @Override
             public void run() {
-                int lastCompletelyVisibleItemPosition = Utils.findLastCompletelyVisibleItemPosition(manager);
-                if (lastCompletelyVisibleItemPosition + 1 != getItemCount()) {
+                int position = LiteAdapterUtils.findLastCompletelyVisibleItemPosition(manager);
+                if (position + 1 != getItemCount()) {
                     setLoadMoreEnable(true);
                 } else {
                     setLoadMoreEnable(false);
@@ -462,23 +370,12 @@ public class LiteAdapter<T> extends AbstractAdapter<T> {
         }
     }
 
-    public LiteAdapter<T> attachTo(RecyclerView recyclerView) {
-        recyclerView.setAdapter(this);
-        return this;
-    }
-
     @Override
     protected int adjustNotifyPosition(int position) {
         return position + mHerders.size();
     }
 
-    public T getRealItem(int position) {
-        if (isHeader(position) || isFooter(position)) {
-            return null;
-        }
-        return mDataSet.get(position - mHerders.size());
-    }
-
+    @Override
     protected boolean isReservedType(int viewType) {
         return viewType == VIEW_TYPE_EMPTY || viewType == VIEW_TYPE_LOAD_MORE
                 || isHeaderType(viewType) || isFooterType(viewType);
@@ -499,22 +396,33 @@ public class LiteAdapter<T> extends AbstractAdapter<T> {
 
     protected boolean isFooter(int position) {
         int headerAndDataCount = mHerders.size() + mDataSet.size();
+        if (isEmptyViewEnable()) {
+            headerAndDataCount++;
+        }
         return mFooters.size() > 0 && position >= headerAndDataCount
                 && position < headerAndDataCount + mFooters.size();
     }
 
+    protected boolean isEmptyViewPosition(int position) {
+        if (isEmptyViewEnable()) {
+            if (mIsKeepHeaderAndFooter)
+                return mHerders.size() == position;
+            else
+                return position == 0;
+        }
+        return false;
+    }
+
     protected boolean isEmptyViewEnable() {
-        // Disable the empty view if have header view or footer view.
-        // not included loadMoreFooter view
-        return mEmptyView != null && mDataSet.size() + mHerders.size() + mFooters.size() == 0;
+        return mEmptyView != null && mDataSet.size() == 0;
     }
 
     protected boolean isLoadMoreEnable() {
-        return mMoreLoader != null && mMoreLoader.isLoadMoreEnable();
+        return mMoreLoader != null && mMoreLoader.isLoadMoreEnable() && mFooters.size() == 0;
     }
 
     protected boolean isLoadMorePosition(int position) {
-        return position == mDataSet.size() + mHerders.size() + mFooters.size();
+        return position == mDataSet.size() + mHerders.size();
     }
 
     public SparseArray<View> getHerders() {
@@ -525,14 +433,6 @@ public class LiteAdapter<T> extends AbstractAdapter<T> {
         return mFooters;
     }
 
-    public SparseArray<ViewInjector<T>> getViewInjectors() {
-        return mViewInjectors;
-    }
-
-    public InjectorFinder<T> getInjectorFinder() {
-        return mInjectorFinder;
-    }
-
     public MoreLoader getMoreLoader() {
         return mMoreLoader;
     }
@@ -541,20 +441,13 @@ public class LiteAdapter<T> extends AbstractAdapter<T> {
         return mEmptyView;
     }
 
-    public OnItemClickListener getOnItemClickListener() {
-        return mOnItemClickListener;
+    public boolean isKeepHeaderAndFooter() {
+        return mIsKeepHeaderAndFooter;
     }
 
-    public OnItemLongClickListener getOnItemLongClickListener() {
-        return mOnItemLongClickListener;
-    }
-
-    public void setOnItemClickListener(OnItemClickListener mOnItemClickListener) {
-        this.mOnItemClickListener = mOnItemClickListener;
-    }
-
-    public void setOnItemLongClickListener(OnItemLongClickListener mOnItemLongClickListener) {
-        this.mOnItemLongClickListener = mOnItemLongClickListener;
+    @Override
+    protected int getHeaderCount() {
+        return mHerders == null ? 0 : mHerders.size();
     }
 
     ////////////////////////////////////////////////////////////////////////////
@@ -563,6 +456,7 @@ public class LiteAdapter<T> extends AbstractAdapter<T> {
         private Context context;
         private View emptyView;
         private MoreLoader moreLoader;
+        private boolean keepHeaderAndFooter = true;
         private InjectorFinder<D> injectorFinder;
         private OnItemClickListener onItemClickListener;
         private OnItemLongClickListener onItemLongClickListener;
@@ -576,6 +470,11 @@ public class LiteAdapter<T> extends AbstractAdapter<T> {
 
         public Builder<D> emptyView(@LayoutRes int layoutId) {
             return emptyView(LayoutInflater.from(context).inflate(layoutId, null));
+        }
+
+        public Builder<D> keepHeaderAndFooter(boolean keep) {
+            this.keepHeaderAndFooter = keep;
+            return this;
         }
 
         public Builder<D> emptyView(View empty) {
@@ -598,9 +497,9 @@ public class LiteAdapter<T> extends AbstractAdapter<T> {
             return this;
         }
 
-        public Builder<D> injectorFinder(@NonNull InjectorFinder<D> linker) {
+        public Builder<D> injectorFinder(@NonNull InjectorFinder<D> finder) {
             Precondition.checkArgument(injectorFinder == null, "Only one InjectorFinder can be registered.");
-            this.injectorFinder = Precondition.checkNotNull(linker);
+            this.injectorFinder = Precondition.checkNotNull(finder);
             return this;
         }
 
@@ -645,7 +544,10 @@ public class LiteAdapter<T> extends AbstractAdapter<T> {
         }
 
         public LiteAdapter<D> create() {
-            return new LiteAdapter<>(this);
+            return new LiteAdapter<>(
+                    moreLoader, emptyView, keepHeaderAndFooter, headers, footers, injectorFinder,
+                    injectors, onItemClickListener, onItemLongClickListener
+            );
         }
     }
 }
