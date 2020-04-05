@@ -5,7 +5,11 @@ import java.util.List;
 
 import androidx.annotation.IntRange;
 import androidx.annotation.NonNull;
+import androidx.recyclerview.widget.DiffUtil;
 import androidx.recyclerview.widget.RecyclerView;
+
+import me.yuu.liteadapter.diff.LiteDiffUtil;
+import me.yuu.liteadapter.diff.LiteListUpdateCallback;
 
 /**
  * @author yu
@@ -13,18 +17,33 @@ import androidx.recyclerview.widget.RecyclerView;
  */
 public abstract class AbstractAdapter<T> extends RecyclerView.Adapter<ViewHolder> implements DataOperator<T> {
 
-    protected final List<T> mDataSet = new ArrayList<>();
+    protected List<T> mDataSet = new ArrayList<>();
+    protected LiteDiffUtil.Callback mDiffCallback;
 
-    protected abstract void beforeSetNewData();
+    protected abstract void beforeUpdateData();
 
     /**
      * 当有Header view时，修改数据并进行定向刷新，需要修正角标
      *
      * @param position position
-     * @return position + headerViews.size
+     * @return position + headerCount
      */
-    protected int adjustNotifyPosition(int position) {
+    public int adjustNotifyPosition(int position) {
         return position;
+    }
+
+    /**
+     * 当有Header view时，在mDataSet获取数据需要修正角标，减去headerCount
+     *
+     * @param position position
+     * @return position - headerCount
+     */
+    public int adjustGetItemPosition(int position) {
+        return position;
+    }
+
+    public LiteDiffUtil.Callback getDiffCallback() {
+        return mDiffCallback;
     }
 
     public List<T> getDataSet() {
@@ -37,13 +56,22 @@ public abstract class AbstractAdapter<T> extends RecyclerView.Adapter<ViewHolder
     }
 
     @Override
-    public void setNewData(List<T> items) {
-        mDataSet.clear();
-        if (items != null && !items.isEmpty()) {
-            mDataSet.addAll(items);
+    public void updateData(List<T> items) {
+        if (mDiffCallback != null) {
+            DiffUtil.DiffResult diffResult = DiffUtil.calculateDiff(
+                    new LiteDiffUtil(mDataSet, items, mDiffCallback)
+            );
+            this.mDataSet = new ArrayList<>(items);
+            beforeUpdateData();
+            diffResult.dispatchUpdatesTo(new LiteListUpdateCallback(this));
+        } else {
+            mDataSet.clear();
+            if (items != null && !items.isEmpty()) {
+                mDataSet.addAll(items);
+            }
+            beforeUpdateData();
+            notifyDataSetChanged();
         }
-        beforeSetNewData();
-        notifyDataSetChanged();
     }
 
     @Override

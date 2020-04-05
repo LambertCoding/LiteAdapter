@@ -24,7 +24,10 @@ public interface DataOperator<D> {
 
     void modify(int position, Action<D> action);
 
-    void setNewData(List<D> items);
+    /**
+     * 设置新的数据集合，自动应用DiffUtil进行差量更新
+     */
+    void updateData(List<D> items);
 
     void clear();
 

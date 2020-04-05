@@ -6,7 +6,7 @@ import android.widget.ImageView
 import com.bumptech.glide.Glide
 import com.bumptech.glide.request.RequestOptions
 import kotlinx.android.synthetic.main.activity_load_more.*
-import me.yuu.liteadapter.core.LiteAdapter
+import me.yuu.liteadapter.core.LiteAdapterEx
 import me.yuu.liteadapter.core.ViewHolder
 import me.yuu.liteadapter.core.ViewInjector
 import me.yuu.sample.R
@@ -44,7 +44,7 @@ class EmptyAndLoadMoreActivity : BaseActivity() {
         }
     }
 
-    override fun createAdapter(): LiteAdapter<OnePiece> {
+    override fun createAdapter(): LiteAdapterEx<OnePiece> {
         val inflater = LayoutInflater.from(this)
         val header1 = inflater.inflate(R.layout.item_header, null)
         val header2 = inflater.inflate(R.layout.item_header, null)
@@ -54,7 +54,7 @@ class EmptyAndLoadMoreActivity : BaseActivity() {
         val emptyView = LayoutInflater.from(this).inflate(R.layout.empty_view, null)
                 .apply { setOnClickListener { refresh() } }
 
-        return LiteAdapter.Builder<OnePiece>(this)
+        return LiteAdapterEx.Builder<OnePiece>(this)
                 .register(object : ViewInjector<OnePiece>(R.layout.item_normal) {
                     override fun bindData(holder: ViewHolder, item: OnePiece, position: Int) {
                         bindData2View(holder, item)
@@ -79,7 +79,7 @@ class EmptyAndLoadMoreActivity : BaseActivity() {
 
     private fun refresh() {
         handler.postDelayed({
-            adapter.setNewData(data)
+            adapter.updateData(data)
             refreshLayout.isRefreshing = false
             loadMoreCount = 0
         }, 1000)

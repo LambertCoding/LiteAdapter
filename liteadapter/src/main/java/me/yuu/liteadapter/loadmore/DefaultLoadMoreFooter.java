@@ -60,7 +60,7 @@ public class DefaultLoadMoreFooter extends LinearLayout implements ILoadMoreFoot
         mText.setGravity(Gravity.CENTER);
         addView(mText);
 
-        setStatus(COMPLETED);
+        setStatus(ILoadMoreFooter.Status.COMPLETED);
     }
 
     @Override
@@ -72,20 +72,20 @@ public class DefaultLoadMoreFooter extends LinearLayout implements ILoadMoreFoot
     public void setStatus(@Status int state) {
         mState = state;
         switch (mState) {
-            case LOADING:
+            case ILoadMoreFooter.Status.LOADING:
                 this.setVisibility(View.VISIBLE);
                 mProgressBar.setVisibility(View.VISIBLE);
                 mText.setText(STR_LOADING);
                 break;
-            case COMPLETED:
+            case ILoadMoreFooter.Status.COMPLETED:
                 this.setVisibility(View.GONE);
                 break;
-            case NO_MORE:
+            case ILoadMoreFooter.Status.NO_MORE:
                 this.setVisibility(View.VISIBLE);
                 mText.setText(STR_NO_MORE);
                 mProgressBar.setVisibility(View.GONE);
                 break;
-            case ERROR:
+            case ILoadMoreFooter.Status.ERROR:
                 this.setVisibility(View.VISIBLE);
                 mText.setText(STR_ERROR);
                 mProgressBar.setVisibility(View.GONE);

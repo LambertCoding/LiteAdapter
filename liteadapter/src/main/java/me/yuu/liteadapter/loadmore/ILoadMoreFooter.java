@@ -1,6 +1,7 @@
 package me.yuu.liteadapter.loadmore;
 
 import androidx.annotation.IntDef;
+
 import android.view.View;
 
 /**
@@ -9,13 +10,12 @@ import android.view.View;
  */
 public interface ILoadMoreFooter {
 
-    int LOADING = 0;
-    int COMPLETED = 1;
-    int NO_MORE = 2;
-    int ERROR = 3;
-
-    @IntDef({LOADING, COMPLETED, NO_MORE, ERROR})
+    @IntDef({Status.LOADING, Status.COMPLETED, Status.NO_MORE, Status.ERROR})
     @interface Status {
+        int LOADING = 0;
+        int COMPLETED = 1;
+        int NO_MORE = 2;
+        int ERROR = 3;
     }
 
     @Status

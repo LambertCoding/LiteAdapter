@@ -9,7 +9,7 @@ import java.util.List;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
-import me.yuu.liteadapter.core.LiteAdapter;
+import me.yuu.liteadapter.core.LiteAdapterEx;
 import me.yuu.sample.R;
 import me.yuu.sample.entity.OnePiece;
 
@@ -20,7 +20,7 @@ import me.yuu.sample.entity.OnePiece;
 public abstract class BaseActivity extends AppCompatActivity {
 
     protected final List<OnePiece> data = new ArrayList<>();
-    protected LiteAdapter<OnePiece> adapter;
+    protected LiteAdapterEx<OnePiece> adapter;
     protected RecyclerView recyclerView;
 
     @Override
@@ -32,7 +32,7 @@ public abstract class BaseActivity extends AppCompatActivity {
 
         loadData();
 
-        adapter.setNewData(data);
+        adapter.updateData(data);
     }
 
     protected void initView() {
@@ -49,7 +49,7 @@ public abstract class BaseActivity extends AppCompatActivity {
         Toast.makeText(this, str, Toast.LENGTH_SHORT).show();
     }
 
-    protected abstract LiteAdapter<OnePiece> createAdapter();
+    protected abstract LiteAdapterEx<OnePiece> createAdapter();
 
     protected void loadData() {
         data.add(new OnePiece("我是要做海贼王的男人", R.mipmap.ic_lufei, false));

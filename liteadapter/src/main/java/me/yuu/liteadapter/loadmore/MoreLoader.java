@@ -23,9 +23,9 @@ public class MoreLoader extends RecyclerView.OnScrollListener {
         this.mLoadMoreFooter.getView().setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (mLoadMoreFooter.getStatus() == ILoadMoreFooter.ERROR) {
+                if (mLoadMoreFooter.getStatus() == ILoadMoreFooter.Status.ERROR) {
                     mLoadMoreListener.onLoadMore();
-                    mLoadMoreFooter.setStatus(ILoadMoreFooter.LOADING);
+                    mLoadMoreFooter.setStatus(ILoadMoreFooter.Status.LOADING);
                 }
             }
         });
@@ -44,15 +44,15 @@ public class MoreLoader extends RecyclerView.OnScrollListener {
     }
 
     public void loadMoreCompleted() {
-        mLoadMoreFooter.setStatus(ILoadMoreFooter.COMPLETED);
+        mLoadMoreFooter.setStatus(ILoadMoreFooter.Status.COMPLETED);
     }
 
     public void loadMoreError() {
-        mLoadMoreFooter.setStatus(ILoadMoreFooter.ERROR);
+        mLoadMoreFooter.setStatus(ILoadMoreFooter.Status.ERROR);
     }
 
     public void noMore() {
-        mLoadMoreFooter.setStatus(ILoadMoreFooter.NO_MORE);
+        mLoadMoreFooter.setStatus(ILoadMoreFooter.Status.NO_MORE);
     }
 
     @Override
@@ -64,9 +64,9 @@ public class MoreLoader extends RecyclerView.OnScrollListener {
         switch (newState) {
             case RecyclerView.SCROLL_STATE_IDLE:
                 if (mLoadMoreListener == null
-                        || mLoadMoreFooter.getStatus() == ILoadMoreFooter.LOADING
-                        || mLoadMoreFooter.getStatus() == ILoadMoreFooter.ERROR
-                        || mLoadMoreFooter.getStatus() == ILoadMoreFooter.NO_MORE) {
+                        || mLoadMoreFooter.getStatus() == ILoadMoreFooter.Status.LOADING
+                        || mLoadMoreFooter.getStatus() == ILoadMoreFooter.Status.ERROR
+                        || mLoadMoreFooter.getStatus() == ILoadMoreFooter.Status.NO_MORE) {
                     return;
                 }
 
@@ -77,7 +77,7 @@ public class MoreLoader extends RecyclerView.OnScrollListener {
 
                 if (layoutManager.getChildCount() > 0
                         && lastPosition >= layoutManager.getItemCount() - 1) {
-                    mLoadMoreFooter.setStatus(ILoadMoreFooter.LOADING);
+                    mLoadMoreFooter.setStatus(ILoadMoreFooter.Status.LOADING);
                     mLoadMoreListener.onLoadMore();
                 }
                 break;
