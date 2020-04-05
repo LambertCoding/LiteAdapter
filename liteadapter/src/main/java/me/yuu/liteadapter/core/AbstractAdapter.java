@@ -57,7 +57,7 @@ public abstract class AbstractAdapter<T> extends RecyclerView.Adapter<ViewHolder
 
     @Override
     public void updateData(List<T> items) {
-        if (mDiffCallback != null) {
+        if (mDiffCallback != null && mDataSet.size() > 0) {
             DiffUtil.DiffResult diffResult = DiffUtil.calculateDiff(
                     new LiteDiffUtil(mDataSet, items, mDiffCallback)
             );
