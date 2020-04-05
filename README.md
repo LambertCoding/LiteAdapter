@@ -5,8 +5,9 @@
 * Fluent & simple API
 * Multi View Type
 * Auto LoadMore
-* Header & Footer
+* Auto Diff
 * Auto Empty View
+* Header & Footer
 * support DataBinding
 
 ## Setup
@@ -20,13 +21,14 @@ allprojects {
 }
 
 // in module build.gradle
-implementation 'com.github.LambertCoding:LiteAdapter:1.0.5'
+
+implementation 'com.github.yu1tiao:LiteAdapter:1.0.9'
 ...
 ```
 ## Usages
 #### step 1: create adapter
 ```kotlin
-LiteAdapter.Builder<SampleEntity>(this)
+LiteAdapterEx.Builder<SampleEntity>(this)
             .register(object : ViewInjector<SampleEntity>(R.layout.item_main) {
                 override fun bindData(holder: ViewHolder, item: SampleEntity, position: Int) {
                     // step 2: bind data
@@ -68,7 +70,7 @@ holder.setText(R.id.tvDesc, item.getDesc())
 ```
 ## Advanced usages
 ```kotlin
-LiteAdapter.Builder<OnePiece>(this)
+LiteAdapterEx.Builder<OnePiece>(this)
                 // register multi view type
                 .register(object : ViewInjector<OnePiece>(R.layout.item_normal) {
                     override fun bindData(holder: ViewHolder, item: OnePiece, position: Int) {
@@ -85,6 +87,8 @@ LiteAdapter.Builder<OnePiece>(this)
                 .headerView(header)
                 .footerView(footer)
                 .emptyView(emptyView)
+//                .footerView(footer) // footer和loadMore互斥，如果添加了footer就不能加载更多
+//                .autoDiff(DefaultDiffCallback())
                 .enableLoadMore { loadMore() }
                 .itemClickListener { position, item -> doSomeThing() }
                 .itemLongClickListener { position, item -> doSomeThing() }

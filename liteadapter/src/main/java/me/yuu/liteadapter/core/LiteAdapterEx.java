@@ -435,7 +435,7 @@ public class LiteAdapterEx<T> extends LiteAdapter<T> {
             this.context = Precondition.checkNotNull(context);
         }
 
-        public Builder<D> enableDiff(LiteDiffUtil.Callback diffCallback) {
+        public Builder<D> autoDiff(LiteDiffUtil.Callback diffCallback) {
             this.diffCallback = diffCallback;
             return this;
         }

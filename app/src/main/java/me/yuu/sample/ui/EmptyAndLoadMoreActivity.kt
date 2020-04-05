@@ -67,10 +67,12 @@ class EmptyAndLoadMoreActivity : BaseActivity() {
                 })
                 .injectorFinder { item, _, _ -> if (item.isBigType) 1 else 0 }
                 .emptyView(emptyView)
+                .keepHeaderAndFooter(true)
                 .headerView(header1)
                 .headerView(header2)
                 .headerView(header3)
 //                .footerView(footer) // footer和loadMore互斥，如果添加了footer就不能加载更多
+//                .autoDiff(DefaultDiffCallback())
                 .enableLoadMore { loadMore() }
                 .itemClickListener { position, _ -> showToast("position = $position") }
                 .itemLongClickListener { position, _ -> adapter.remove(position) }
