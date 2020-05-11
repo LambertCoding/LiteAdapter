@@ -25,7 +25,7 @@ class EmptyAndLoadMoreActivity : BaseActivity() {
         super.initView()
         btnClear.setOnClickListener { adapter.clear() }
         btnAdd.setOnClickListener {
-            if (adapter.dataSet.size == 0) {
+            if (adapter.isEmpty()) {
                 showToast("请先点击重试！")
                 return@setOnClickListener
             }
@@ -38,6 +38,7 @@ class EmptyAndLoadMoreActivity : BaseActivity() {
                 adapter.addAll(2, newData)
             }
         }
+
         refreshLayout.setOnRefreshListener {
             insertCount = 0
             refresh()
@@ -104,13 +105,13 @@ class EmptyAndLoadMoreActivity : BaseActivity() {
 
     private fun bindData2View(holder: ViewHolder, item: OnePiece) {
         holder.setText(R.id.tvDesc, item.desc)
-                .with(R.id.ivImage, ViewHolder.Action<ImageView> { view ->
+                .doAction<ImageView>(R.id.ivImage) { view ->
                     if (item.imageRes == -1) item.imageRes = R.mipmap.ic_launcher
                     Glide.with(this@EmptyAndLoadMoreActivity)
                             .load(item.imageRes)
                             .apply(RequestOptions().centerCrop())
                             .into(view)
-                })
+                }
     }
 
 }

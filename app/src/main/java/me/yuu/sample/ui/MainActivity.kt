@@ -26,7 +26,7 @@ class MainActivity : AppCompatActivity() {
         val recyclerView = findViewById<RecyclerView>(R.id.recyclerView)
         recyclerView.layoutManager = LinearLayoutManager(this)
 
-        val adapter = LiteAdapter.Builder<SampleEntity>(this)
+        val adapter = LiteAdapter.Builder<SampleEntity>()
                 .register(object : ViewInjector<SampleEntity>(R.layout.item_main) {
                     override fun bindData(holder: ViewHolder, item: SampleEntity, position: Int) {
                         holder.setText(R.id.tvDesc, item.name)

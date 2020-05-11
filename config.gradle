@@ -4,103 +4,102 @@ ext {
             compileSdkVersion: 29,
             minSdkVersion    : 19,
             targetSdkVersion : 29,
-            versionCode      : 1,
-            versionName      : '1.0.0'
+            buildToolsVersion: "29.0.3",
     ]
 
-    versions = [
-            android_plugin: '3.3.2',
-            kotlin        : '1.3.70',
-            kodein        : '6.1.0',
-            ktx           : '1.0.1',
-
-            constraint    : '1.1.3',
-            androidx      : '1.0.2',
-            cardview      : '1.0.0',
-            material      : '1.0.0',
-            recyclerview  : '1.0.0',
-
-            arch_core     : '2.0.0',
-            arch_room     : '2.0.0',
-
-            okhttp        : '3.12.1',
-            retrofit      : '2.5.0',
-            glide         : '4.8.0',
-
-            rxjava        : '2.2.5',
-            rxandroid     : '2.1.0',
-            rxbinding     : '3.0.0-alpha2',
-            rxkotlin      : '2.3.0',
-            rxpermissions : '0.10.2',
-            autodispose   : '1.1.0',
-
-            utilcode      : '1.23.7',
-            baseRvAdapter : '2.9.45-androidx',
-            timber        : '4.7.1',
-
-            pickerView    : '4.1.7',
-            agentweb      : '4.0.2',
-            mmkv          : '1.0.18',
-            gloading      : '1.0.0'
+    kotlinDeps = [
+            kotlin_stdlib            : "org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.3.72",
+            // 协程
+            kotlin_coroutines        : "org.jetbrains.kotlinx:kotlinx-coroutines-core:1.3.5",
+            kotlin_coroutines_android: "org.jetbrains.kotlinx:kotlinx-coroutines-android:1.3.5",
     ]
 
-    libs = [
-            databinding_compiler   : [group: 'com.android.databinding', name: 'compiler', version: versions.android_plugin],
-            kotlin_stdlib          : [group: 'org.jetbrains.kotlin', name: 'kotlin-stdlib-jdk7', version: versions.kotlin],
-            core_ktx               : [group: 'androidx.core', name: 'core-ktx', version: versions.ktx],
-
+    androidxDeps = [
             // android x
-            appcompat              : [group: 'androidx.appcompat', name: 'appcompat', version: versions.androidx],
+            core_ktx    : "androidx.core:core-ktx:1.2.0",
+            appcompat   : "androidx.appcompat:appcompat:1.1.0",
 
-            cardview               : [group: 'androidx.cardview', name: 'cardview', version: versions.cardview],
-            recyclerview           : [group: 'androidx.recyclerview', name: 'recyclerview', version: versions.recyclerview],
-            constraint             : [group: 'androidx.constraintlayout', name: 'constraintlayout', version: versions.constraint],
-            design                 : [group: 'com.google.android.material', name: 'material', version: versions.material],
+            constraint  : "androidx.constraintlayout:constraintlayout:1.1.3",
+            swiperefresh: "androidx.swiperefreshlayout:swiperefreshlayout:1.0.0",
+            recyclerview: "androidx.recyclerview:recyclerview:1.1.0",
+            cardview    : "androidx.cardview:cardview:1.0.0",
+
+            multidex    : 'androidx.multidex:multidex:2.0.1',
+    ]
+
+    jetpackDeps = [
+            // lifecycle
+            lifecycle_ktx          : "androidx.lifecycle:lifecycle-runtime-ktx:2.2.0",
+            lifecycle_viewmodel_ktx: "androidx.lifecycle:lifecycle-viewmodel-ktx:2.2.0",
+            lifecycle_livedata_ktx : "androidx.lifecycle:lifecycle-livedata-ktx:2.2.0",
 
             // extensions包含ViewModel和LiveData
-            arch_core_extension    : [group: 'androidx.lifecycle', name: 'lifecycle-extensions', version: versions.arch_core],
-            arch_core_compiler     : [group: 'androidx.lifecycle', name: 'lifecycle-compiler', version: versions.arch_core],
+            arch_core_extension    : "androidx.lifecycle:lifecycle-extensions:2.2.0",
+            arch_core_compiler     : "androidx.lifecycle:lifecycle-compiler:2.2.0",
 
-            arch_room              : [group: 'androidx.room', name: 'room-runtime', version: versions.arch_room],
-            arch_room_compiler     : [group: 'androidx.room', name: 'room-compiler', version: versions.arch_room],
-            arch_room_rxjava       : [group: 'androidx.room', name: 'room-rxjava2', version: versions.arch_room],
-            arch_room_test         : [group: 'androidx.room', name: 'room-testing', version: versions.arch_room],
+            arch_room              : "androidx.room:room-runtime:2.2.0",
+            arch_room_compiler     : "androidx.room:room-compiler:2.2.0",
+            arch_room_rxjava       : "androidx.room:room-rxjava2:2.2.0",
+            arch_room_test         : "androidx.room:room-testing:2.2.0",
+    ]
 
+    uiDeps = [
+            design         : "com.google.android.material:material:1.1.0",
+            flexboxLayout  : "com.google.android:flexbox:2.0.1",
+            material_dialog: "com.afollestad.material-dialogs:core:3.3.0",
+            pickerView     : "com.contrarywind:Android-PickerView:4.1.9",
 
-            glide                  : [group: 'com.github.bumptech.glide', name: 'glide', version: versions.glide],
-            glide_compiler         : [group: 'com.github.bumptech.glide', name: 'compiler', version: versions.glide],
+    ]
 
-            okhttp                 : [group: 'com.squareup.okhttp3', name: 'okhttp', version: versions.okhttp],
-            okhttp_logging         : [group: 'com.squareup.okhttp3', name: 'logging-interceptor', version: versions.okhttp],
+    imageDeps = [
+            glide           : "com.github.bumptech.glide:glide:4.11.0",
+            glide_compiler  : "com.github.bumptech.glide:compiler:4.11.0",
+            glide_xformation: "jp.wasabeef:glide-transformations:4.1.0",
+    ]
 
-            retrofit               : [group: 'com.squareup.retrofit2', name: 'retrofit', version: versions.retrofit],
-            retrofit_gson          : [group: 'com.squareup.retrofit2', name: 'converter-gson', version: versions.retrofit],
-            retrofit_rxjava        : [group: 'com.squareup.retrofit2', name: 'adapter-rxjava2', version: versions.retrofit],
+    rxjavaDeps = [
+            rxjava3              : "io.reactivex.rxjava3:rxjava:3.0.0",
+            rxandroid3           : "io.reactivex.rxjava3:rxandroid:3.0.0",
 
-            rxjava                 : [group: 'io.reactivex.rxjava2', name: 'rxjava', version: versions.rxjava],
-            rxandroid              : [group: 'io.reactivex.rxjava2', name: 'rxandroid', version: versions.rxandroid],
-            rxpermissions          : [group: 'com.github.tbruyelle', name: 'rxpermissions', version: versions.rxpermissions],
-            rxbinding              : [group: 'com.jakewharton.rxbinding3', name: 'rxbinding', version: versions.rxbinding],
-            rxkotlin               : [group: 'io.reactivex.rxjava2', name: 'rxkotlin', version: versions.rxkotlin],
+//            rxbinding            : "com.jakewharton.rxbinding3:rxbinding:3.1.0",// 现在是rxjava2的版本
 
-            autodispose            : [group: 'com.uber.autodispose', name: 'autodispose-android', version: versions.autodispose],
-            autodispose_ktx        : [group: 'com.uber.autodispose', name: 'autodispose-ktx', version: versions.autodispose],
-            autodispose_android_ktx: [group: 'com.uber.autodispose', name: 'autodispose-android-ktx', version: versions.autodispose],
-            autodispose_arch_ktx   : [group: 'com.uber.autodispose', name: 'autodispose-android-archcomponents-ktx', version: versions.autodispose],
+            autodispose          : "com.uber.autodispose2:autodispose-android:2.0.0",
+            autodispose_lifecycle: "com.uber.autodispose2:autodispose-lifecycle:2.0.0",
+            autodispose_arch     : "com.uber.autodispose2:autodispose-androidx-lifecycle:2.0.0",
+    ]
 
-            kodein                 : [group: 'org.kodein.di', name: 'kodein-di-generic-jvm', version: versions.kodein],
-            kodein_android         : [group: 'org.kodein.di', name: 'kodein-di-framework-android-core', version: versions.kodein],
-            kodein_androidx        : [group: 'org.kodein.di', name: 'kodein-di-framework-android-x', version: versions.kodein],
+    httpDeps = [
+            okhttp         : "com.squareup.okhttp3:okhttp:4.5.0",
+            okhttp_logging : "com.squareup.okhttp3:logging-interceptor:4.5.0",
 
-            utilCode               : [group: 'com.blankj', name: 'utilcodex', version: versions.utilcode],
-            timber                 : [group: 'com.jakewharton.timber', name: 'timber', version: versions.timber],
-            baseRvAdapter          : [group: 'com.github.CymChad', name: 'BaseRecyclerViewAdapterHelper', version: versions.baseRvAdapter],
-            pickerView             : [group: 'com.contrarywind', name: 'Android-PickerView', version: versions.pickerView],
-            agentweb               : [group: 'com.just.agentweb', name: 'agentweb', version: versions.agentweb],
-            mmkv                   : [group: 'com.tencent', name: 'mmkv', version: versions.mmkv],
-            gloading               : [group: 'com.billy.android', name: 'gloading', version: versions.gloading],
+            gson           : "com.google.code.gson:gson:2.8.6",
+            retrofit       : "com.squareup.retrofit2:retrofit:2.8.1",
+            retrofit_gson  : "com.squareup.retrofit2:converter-gson:2.8.1",
+            retrofit_rxjava: "com.github.akarnokd:rxjava3-retrofit-adapter:3.0.0",// 第三方的rxjava3adapter
+//            retrofit_rxjava: "com.squareup.retrofit2:adapter-rxjava2:2.8.1",// rxjava2版本的，官方暂时没有支持rxjava3
+    ]
 
-            cc                     : "com.billy.android:cc:2.1.4"
+    koinDeps = [
+            koin_android: "org.koin:koin-android:2.0.1",
+            koin        : "org.koin:koin-androidx-ext:2.0.1",
+    ]
+
+    toolDeps = [
+            eventbus          : "com.github.yu1tiao:EventBus:1.0.2",
+            eventbus_compiler : "com.github.yu1tiao.EventBus:bus-compiler:1.0.2",
+            liteAdapter       : "com.github.yu1tiao:LiteAdapter:1.1.0x",
+
+            utilCode          : "com.blankj:utilcodex:1.28.4",
+            mmkv              : "com.tencent:mmkv-static:1.1.1",
+            timber            : "com.jakewharton.timber:timber:4.7.1",
+            agentweb          : "com.just.agentweb:agentweb:4.1.3",
+            permission_assent : "com.afollestad.assent:core:3.0.0-RC4",
+
+            wm_router         : "com.sankuai.waimai.router:router:1.2.0",
+            wm_router_compiler: "com.sankuai.waimai.router:compiler:1.2.0",
+
+//            arouter          : "com.alibaba:arouter-api:1.5.0",
+//            arouter_compiler : "com.alibaba:arouter-compiler:1.2.2"
     ]
 
 }

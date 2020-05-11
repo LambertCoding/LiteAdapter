@@ -46,13 +46,13 @@ class HeaderAndFooterActivity : BaseActivity() {
 
     private fun bindData2View(holder: ViewHolder, item: OnePiece) {
         holder.setText(R.id.tvDesc, item.desc)
-                .with(R.id.ivImage, ViewHolder.Action<ImageView> { view ->
+                .doAction<ImageView>(R.id.ivImage) {
                     if (item.imageRes == -1) item.imageRes = R.mipmap.ic_launcher
-                    Glide.with(this)
+                    Glide.with(this@HeaderAndFooterActivity)
                             .load(item.imageRes)
                             .apply(RequestOptions().centerCrop())
-                            .into(view)
-                })
+                            .into(it)
+                }
     }
 
 }
