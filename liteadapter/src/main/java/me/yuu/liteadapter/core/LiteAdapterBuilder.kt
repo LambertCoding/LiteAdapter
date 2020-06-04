@@ -1,6 +1,7 @@
 package me.yuu.liteadapter.core
 
 import android.util.SparseArray
+import androidx.annotation.LayoutRes
 import me.yuu.liteadapter.diff.DefaultDiffCallback
 import me.yuu.liteadapter.diff.LiteDiffUtil
 
@@ -41,7 +42,7 @@ abstract class LiteAdapterBuilder<D, T : LiteAdapter<D>> {
         }
         injectorFinder = object : InjectorFinder<D> {
             override fun index(item: D, position: Int, itemCount: Int): Int {
-               return finder.invoke(item, position, itemCount)
+                return finder.invoke(item, position, itemCount)
             }
         }
         return this
@@ -50,6 +51,15 @@ abstract class LiteAdapterBuilder<D, T : LiteAdapter<D>> {
     open fun register(injector: ViewInjector<D>): LiteAdapterBuilder<D, T> {
         val viewType = injectors.size() + 1
         injectors.put(viewType, injector)
+        return this
+    }
+
+    open fun register(@LayoutRes layoutId: Int, block: (holder: ViewHolder, item: D, position: Int) -> Unit): LiteAdapterBuilder<D, T> {
+        register(object : ViewInjector<D>(layoutId) {
+            override fun bindData(holder: ViewHolder, item: D, position: Int) {
+                block.invoke(holder, item, position)
+            }
+        })
         return this
     }
 

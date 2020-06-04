@@ -347,6 +347,10 @@ class LiteAdapterEx<T>(
             return this
         }
 
+        override fun register(@LayoutRes layoutId: Int, block: (holder: ViewHolder, item: D, position: Int) -> Unit): Builder<D> {
+            super.register(layoutId, block)
+            return this
+        }
 
         fun emptyView(@LayoutRes layoutId: Int): Builder<D> {
             return emptyView(LayoutInflater.from(context).inflate(layoutId, null))
