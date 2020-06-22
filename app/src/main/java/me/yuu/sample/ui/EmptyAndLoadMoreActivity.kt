@@ -8,7 +8,7 @@ import com.bumptech.glide.request.RequestOptions
 import kotlinx.android.synthetic.main.activity_load_more.*
 import me.yuu.liteadapter.core.LiteAdapterEx
 import me.yuu.liteadapter.core.ViewHolder
-import me.yuu.liteadapter.core.ViewInjector
+import me.yuu.liteadapter.ext.buildAdapterEx
 import me.yuu.sample.R
 import me.yuu.sample.entity.OnePiece
 import java.util.*
@@ -55,29 +55,37 @@ class EmptyAndLoadMoreActivity : BaseActivity() {
         val emptyView = LayoutInflater.from(this).inflate(R.layout.empty_view, null)
                 .apply { setOnClickListener { refresh() } }
 
-        return LiteAdapterEx.Builder<OnePiece>(this)
-                .register(object : ViewInjector<OnePiece>(R.layout.item_normal) {
-                    override fun bindData(holder: ViewHolder, item: OnePiece, position: Int) {
-                        bindData2View(holder, item)
-                    }
-                })
-                .register(object : ViewInjector<OnePiece>(R.layout.item_big) {
-                    override fun bindData(holder: ViewHolder, item: OnePiece, position: Int) {
-                        bindData2View(holder, item)
-                    }
-                })
-                .injectorFinder { item, _, _ -> if (item.isBigType) 1 else 0 }
-                .emptyView(emptyView)
-                .keepHeaderAndFooter(true)
-                .headerView(header1)
-                .headerView(header2)
-                .headerView(header3)
-//                .footerView(footer) // footer和loadMore互斥，如果添加了footer就不能加载更多
-//                .autoDiff(DefaultDiffCallback())
-                .enableLoadMore { loadMore() }
-                .itemClickListener { position, _ -> showToast("position = $position") }
-                .itemLongClickListener { position, _ -> adapter.remove(position) }
-                .create()
+        return buildAdapterEx(this) {
+            register(R.layout.item_normal) { holder, item, _ ->
+                bindData2View(holder, item)
+            }
+            register(R.layout.item_big) { holder, item, _ ->
+                bindData2View(holder, item)
+            }
+
+            injectorFinder { item, _, _ ->
+                if (item.isBigType) 1 else 0
+            }
+            itemClickListener { index, _ ->
+                showToast("click position : $index")
+            }
+            itemLongClickListener { index, _ ->
+                adapter.remove(index)
+            }
+
+            this.emptyView = emptyView
+            keepHeadAndFoot = true
+
+            addHeader(header1)
+            addHeader(header2)
+            addHeader(header3)
+
+//            autoDiff()
+//            addFooter(footer)
+            enableLoadMore {
+                loadMore()
+            }
+        }
     }
 
     private fun refresh() {

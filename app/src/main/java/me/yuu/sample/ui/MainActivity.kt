@@ -4,10 +4,8 @@ import android.content.Intent
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.RecyclerView
-import me.yuu.liteadapter.core.LiteAdapter
-import me.yuu.liteadapter.core.ViewHolder
-import me.yuu.liteadapter.core.ViewInjector
+import kotlinx.android.synthetic.main.layout_list.*
+import me.yuu.liteadapter.ext.buildAdapter
 import me.yuu.sample.R
 import me.yuu.sample.entity.SampleEntity
 import java.util.*
@@ -23,18 +21,19 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.layout_list)
 
-        val recyclerView = findViewById<RecyclerView>(R.id.recyclerView)
-        recyclerView.layoutManager = LinearLayoutManager(this)
+        val adapter = buildAdapter<SampleEntity>(this) {
+            register(R.layout.item_main) { holder, item, _ ->
+                holder.setText(R.id.tvDesc, item.name)
+            }
+            itemClickListener { _, item ->
+                startActivity(Intent(this@MainActivity, (item as SampleEntity).target))
+            }
+        }
 
-        val adapter = LiteAdapter.Builder<SampleEntity>()
-                .register(object : ViewInjector<SampleEntity>(R.layout.item_main) {
-                    override fun bindData(holder: ViewHolder, item: SampleEntity, position: Int) {
-                        holder.setText(R.id.tvDesc, item.name)
-                    }
-                })
-                .itemClickListener { _, item -> startActivity(Intent(this, (item as SampleEntity).target)) }
-                .create()
-                .attachTo(recyclerView)
+        recyclerView.apply {
+            layoutManager = LinearLayoutManager(this@MainActivity)
+            this.adapter = adapter
+        }
 
         adapter.updateData(data)
     }

@@ -15,6 +15,6 @@ abstract class ViewInjector<D>(@param:LayoutRes val layoutId: Int) {
      * @param item     实体对象
      * @param position 角标
      */
-    abstract fun bindData(holder: ViewHolder, item: D, position: Int)
+    abstract fun bind(holder: ViewHolder, item: D, position: Int)
 
 }

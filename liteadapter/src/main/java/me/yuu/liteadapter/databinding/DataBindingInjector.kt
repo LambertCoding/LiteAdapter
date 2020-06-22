@@ -9,7 +9,7 @@ import me.yuu.liteadapter.core.ViewInjector
  * @date 2019/4/15
  */
 class DataBindingInjector<D>(layoutId: Int) : ViewInjector<D>(layoutId) {
-    override fun bindData(holder: ViewHolder, item: D, position: Int) {
+    override fun bind(holder: ViewHolder, item: D, position: Int) {
         val dViewHolder = holder as DataBindingViewHolder
         val binding = dViewHolder.binding
         if (binding != null) {

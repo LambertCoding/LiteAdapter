@@ -6,7 +6,7 @@ import com.bumptech.glide.Glide
 import com.bumptech.glide.request.RequestOptions
 import me.yuu.liteadapter.core.LiteAdapterEx
 import me.yuu.liteadapter.core.ViewHolder
-import me.yuu.liteadapter.core.ViewInjector
+import me.yuu.liteadapter.ext.buildAdapterEx
 import me.yuu.sample.R
 import me.yuu.sample.entity.OnePiece
 
@@ -23,25 +23,27 @@ class HeaderAndFooterActivity : BaseActivity() {
         val header3 = inflater.inflate(R.layout.item_header, null)
         val footer = inflater.inflate(R.layout.item_footer, null)
 
-        return LiteAdapterEx.Builder<OnePiece>(this)
-                .register(object : ViewInjector<OnePiece>(R.layout.item_normal) {
-                    override fun bindData(holder: ViewHolder, item: OnePiece, position: Int) {
-                        bindData2View(holder, item)
-                    }
-                })
-                .register(object : ViewInjector<OnePiece>(R.layout.item_big) {
-                    override fun bindData(holder: ViewHolder, item: OnePiece, position: Int) {
-                        bindData2View(holder, item)
-                    }
-                })
-                .injectorFinder { item, _, _ -> if (item.isBigType) 1 else 0 }
-                .headerView(header1)
-                .headerView(header2)
-                .headerView(header3)
-                .footerView(footer)
-                .itemClickListener { position, _ -> showToast("click position : $position") }
-                .itemLongClickListener { position, _ -> adapter.remove(position) }
-                .create()
+        return buildAdapterEx(this) {
+            register(R.layout.item_normal) { holder, item, _ ->
+                bindData2View(holder, item)
+            }
+            register(R.layout.item_big) { holder, item, _ ->
+                bindData2View(holder, item)
+            }
+            injectorFinder { item, _, _ ->
+                if (item.isBigType) 1 else 0
+            }
+            itemClickListener { index, _ ->
+                showToast("click position : $index")
+            }
+            itemLongClickListener { index, _ ->
+                adapter.remove(index)
+            }
+            addHeader(header1)
+            addHeader(header2)
+            addHeader(header3)
+            addFooter(footer)
+        }
     }
 
     private fun bindData2View(holder: ViewHolder, item: OnePiece) {

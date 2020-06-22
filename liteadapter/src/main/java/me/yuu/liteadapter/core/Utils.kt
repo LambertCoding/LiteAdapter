@@ -1,4 +1,4 @@
-package me.yuu.liteadapter.util
+package me.yuu.liteadapter.core
 
 import android.content.Context
 import android.view.View
@@ -10,7 +10,7 @@ import androidx.recyclerview.widget.*
  * @author yu
  * @date 2018/1/12
  */
-object LiteAdapterUtils {
+internal object Utils {
 
     fun dp2px(context: Context, dpValue: Float): Int {
         val scale = context.resources.displayMetrics.density

@@ -5,7 +5,7 @@ import android.util.SparseArray
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.recyclerview.widget.RecyclerView
+import androidx.annotation.LayoutRes
 import me.yuu.liteadapter.databinding.DataBindingInjector
 import me.yuu.liteadapter.databinding.DataBindingViewHolder
 import me.yuu.liteadapter.diff.DefaultDiffCallback
@@ -17,26 +17,22 @@ import me.yuu.liteadapter.diff.LiteDiffUtil
  *
  * @param <T>
 </T> */
-open class LiteAdapter<T>(
-        /**
-         * key: viewType    value: [ViewInjector]
-         */
-        val viewInjectors: SparseArray<ViewInjector<T>>,
-        val injectorFinder: InjectorFinder<T>?,
-        diffCallback: LiteDiffUtil.Callback?,
-        var onItemClickListener: OnItemClickListener?,
-        var onItemLongClickListener: OnItemLongClickListener?
-) : AbstractAdapter<T>(diffCallback) {
+open class LiteAdapter<T>(protected val context: Context) : AbsAdapter<T>() {
 
-    override fun beforeUpdateData() {}
+    /**
+     * key: viewType    value: [ViewInjector]
+     */
+    private val viewInjectors by lazy { SparseArray<ViewInjector<T>>() }
+    private var injectorFinder: InjectorFinder<T>? = null
+    private var onItemClickListener: OnItemClickListener? = null
+    private var onItemLongClickListener: OnItemLongClickListener? = null
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
         val injector = requireNotNull(viewInjectors[viewType]) {
             "You haven't registered this view type($viewType) yet . Or you return the wrong view type in InjectorFinder."
         }
 
-        val itemView = LayoutInflater.from(parent.context)
-                .inflate(injector.layoutId, parent, false)
+        val itemView = LayoutInflater.from(parent.context).inflate(injector.layoutId, parent, false)
         val holder = createCustomViewHolder(itemView, injector)
         setupItemClickListener(holder)
         setupItemLongClickListener(holder)
@@ -44,7 +40,7 @@ open class LiteAdapter<T>(
         return holder
     }
 
-    protected fun createCustomViewHolder(itemView: View, injector: ViewInjector<*>): ViewHolder {
+    protected open fun createCustomViewHolder(itemView: View, injector: ViewInjector<*>): ViewHolder {
         return if (injector is DataBindingInjector<*>) {
             DataBindingViewHolder(itemView)
         } else {
@@ -53,11 +49,11 @@ open class LiteAdapter<T>(
     }
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-        bindFromViewInjector(holder, position)
+        bindInjector(holder, position)
     }
 
-    protected fun bindFromViewInjector(holder: ViewHolder, position: Int) {
-        val item = mDataSet[adjustGetItemPosition(position)]
+    protected open fun bindInjector(holder: ViewHolder, position: Int) {
+        val item = mDataSet[adjustGetItemIndex(position)]
         val viewType = getItemViewType(position)
 
         require(!isReservedType(viewType)) {
@@ -68,7 +64,7 @@ open class LiteAdapter<T>(
             "You haven't registered this view type(  $viewType ) yet . Or you return the wrong view type in InjectorFinder."
         }
 
-        injector.bindData(holder, item, adjustGetItemPosition(position))
+        injector.bind(holder, item, adjustGetItemIndex(position))
     }
 
     override fun getItemCount(): Int {
@@ -79,64 +75,86 @@ open class LiteAdapter<T>(
         return getViewTypeFromInjectors(position)
     }
 
-    protected fun getViewTypeFromInjectors(position: Int): Int {
+    protected open fun getViewTypeFromInjectors(position: Int): Int {
         require(viewInjectors.size() != 0) {
             "No view type is registered."
         }
 
         val index = if (viewInjectors.size() > 1) {
             requireNotNull(injectorFinder) {
-                "Multiple view types are registered. You must set a ViewTypeInjector for LiteAdapter"
+                "Multiple view types are registered. You must set a injectorFinder"
             }
 
-            val adjustPosition = adjustGetItemPosition(position)
-            injectorFinder.index(mDataSet[adjustPosition], adjustPosition, itemCount)
+            val adjustPosition = adjustGetItemIndex(position)
+            injectorFinder!!.index(mDataSet[adjustPosition], adjustPosition, itemCount)
         } else {
             0
         }
 
-        require(index >= 0 && index < viewInjectors.size()) {
+        require(index in 0 until viewInjectors.size()) {
             "return wrong index =  $index  in InjectorFinder, You have registered ${viewInjectors.size()} ViewInjector!"
         }
 
         return viewInjectors.keyAt(index)
     }
 
-    protected fun setupItemClickListener(viewHolder: ViewHolder) {
-        if (onItemClickListener != null) {
-            viewHolder.itemView.setOnClickListener {
-                val position = adjustGetItemPosition(viewHolder.layoutPosition)
-                onItemClickListener!!.onItemClick(position, mDataSet[position] as Any)
-            }
+    private fun setupItemClickListener(viewHolder: ViewHolder) {
+        viewHolder.itemView.setOnClickListener {
+            val position = adjustGetItemIndex(viewHolder.layoutPosition)
+            onItemClickListener?.invoke(position, mDataSet[position] as Any)
         }
     }
 
-    protected fun setupItemLongClickListener(viewHolder: ViewHolder) {
-        if (onItemLongClickListener != null) {
-            viewHolder.itemView.setOnLongClickListener {
-                val position = adjustGetItemPosition(viewHolder.layoutPosition)
-                onItemLongClickListener!!.onItemLongClick(position, mDataSet[position] as Any)
-                true
-            }
+    private fun setupItemLongClickListener(viewHolder: ViewHolder) {
+        viewHolder.itemView.setOnLongClickListener {
+            val position = adjustGetItemIndex(viewHolder.layoutPosition)
+            onItemLongClickListener?.invoke(position, mDataSet[position] as Any)
+            true
         }
-    }
-
-    fun attachTo(recyclerView: RecyclerView): LiteAdapter<T> {
-        recyclerView.adapter = this
-        return this
     }
 
     protected open fun isReservedType(viewType: Int): Boolean {
         return false
     }
 
+    ///////////////////////////////////////////////////////////////////////////////////////
 
-    open class Builder<D> : LiteAdapterBuilder<D, LiteAdapter<D>>() {
-        override fun create(): LiteAdapter<D> {
-            return LiteAdapter(
-                    injectors, injectorFinder, diffCallback, onItemClickListener, onItemLongClickListener
-            )
+    fun register(injector: ViewInjector<T>) {
+        val viewType = viewInjectors.size() + 1
+        viewInjectors.put(viewType, injector)
+    }
+
+    fun register(@LayoutRes layoutId: Int, block: (holder: ViewHolder, item: T, position: Int) -> Unit) {
+        register(object : ViewInjector<T>(layoutId) {
+            override fun bind(holder: ViewHolder, item: T, position: Int) {
+                block.invoke(holder, item, position)
+            }
+        })
+    }
+
+    fun injectorFinder(finder: InjectorFinder<T>) {
+        this.injectorFinder = finder
+    }
+
+    fun injectorFinder(finder: (item: T, position: Int, itemCount: Int) -> Int) {
+        this.injectorFinder = object : InjectorFinder<T> {
+            override fun index(item: T, position: Int, itemCount: Int): Int {
+                return finder(item, position, itemCount)
+            }
         }
+    }
+
+    fun itemClickListener(listener: OnItemClickListener) {
+        this.onItemClickListener = listener
+    }
+
+    fun itemLongClickListener(listener: OnItemLongClickListener) {
+        this.onItemLongClickListener = listener
+    }
+
+
+    open fun autoDiff(diffCallback: LiteDiffUtil.Callback? = DefaultDiffCallback()) {
+        this.diffCallback = diffCallback
     }
 
 }
