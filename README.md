@@ -28,14 +28,42 @@ implementation 'com.github.yu1tiao:LiteAdapter:1.0.9'
 ## Usages
 #### step 1: create adapter
 ```kotlin
-LiteAdapterEx.Builder<SampleEntity>(this)
-            .register(object : ViewInjector<SampleEntity>(R.layout.item_main) {
-                override fun bindData(holder: ViewHolder, item: SampleEntity, position: Int) {
-                    // step 2: bind data
-                }
-            })
-            .create()
-            .attachTo(recyclerView)
+buildAdapterEx(this) {
+            // 注册一个布局
+            register(R.layout.item_normal) { holder, item, _ ->
+                bindData2View(holder, item)// 绑定数据
+            }
+            register(R.layout.item_big) { holder, item, _ ->
+                bindData2View(holder, item)
+            }
+
+            // 多布局类型时，通过injectorFinder返回对应布局的角标，按register顺序，从0开始
+            injectorFinder { item, _, _ ->
+                if (item.isBigType) 1 else 0
+            }
+            // 点击事件
+            itemClickListener { index, _ ->
+                showToast("click position : $index")
+            }
+            itemLongClickListener { index, _ ->
+                adapter.remove(index)
+            }
+
+            this.emptyView = emptyView // 空布局
+            keepHeadAndFoot = true  // 没有数据的时候是否保持头和脚布局
+
+            // 头布局和脚布局
+            addHeader(header1)
+            addHeader(header2)
+            addHeader(header3)
+
+//            autoDiff()
+//            addFooter(footer)
+            // 加载更多，注意和脚布局互斥，只能有一个类型存在
+            enableLoadMore {
+                loadMore()
+            }
+        }
 ```
 #### step 2: bind data
 ```kotlin
@@ -68,31 +96,18 @@ holder.setText(R.id.tvDesc, item.getDesc())
     void noMore();
 
 ```
-## Advanced usages
+## sample usages
 ```kotlin
-LiteAdapterEx.Builder<OnePiece>(this)
-                // register multi view type
-                .register(object : ViewInjector<OnePiece>(R.layout.item_normal) {
-                    override fun bindData(holder: ViewHolder, item: OnePiece, position: Int) {
-                        // bind data
-                    }
-                })
-                .register(object : ViewInjector<OnePiece>(R.layout.item_big) {
-                    override fun bindData(holder: ViewHolder, item: OnePiece, position: Int) {
-                        // bind data
-                    }
-                })
-                // multi view type must set a injectorFinder, return the index of injector
-                .injectorFinder { item, position -> if (item.isBigType) 1 else 0 }
-                .headerView(header)
-                .footerView(footer)
-                .emptyView(emptyView)
-//                .footerView(footer) // footer和loadMore互斥，如果添加了footer就不能加载更多
-//                .autoDiff(DefaultDiffCallback())
-                .enableLoadMore { loadMore() }
-                .itemClickListener { position, item -> doSomeThing() }
-                .itemLongClickListener { position, item -> doSomeThing() }
-                .create()
+// 对于只用到基础功能，不需要加载更多，头布局、空布局等等功能的，提供简单版本：
+// 只包含多类型布局和点击事件，其他扩展功能请使用buildAdapterEx
+buildAdapter<SampleEntity>(this) {
+            register(R.layout.item_main) { holder, item, _ ->
+                holder.setText(R.id.tvDesc, item.name)
+            }
+            itemClickListener { _, item ->
+                startActivity(Intent(this@MainActivity, (item as SampleEntity).target))
+            }
+        }
 ```
 ## DataBinding adapter
 ```xml
@@ -110,9 +125,19 @@ LiteAdapterEx.Builder<OnePiece>(this)
 ```
 
 ```kotlin
-LiteAdapter.Builder<OnePiece>(this)
-                .register(DataBindingInjector(R.layout.item_big_data_binding))
-                .create()
+buildAdapterEx(this) {
+            // 注册DataBindingInjector
+            register(DataBindingInjector(R.layout.item_big_data_binding))
+            addHeader(header)
+            addFooter(footer)
+
+            itemClickListener { index, _ ->
+                showToast("click position : $index")
+            }
+            itemLongClickListener { index, _ ->
+                adapter.remove(index)
+            }
+}
 ```
 ## License
     MIT License
