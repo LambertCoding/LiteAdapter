@@ -25,6 +25,10 @@ abstract class AbsAdapter<T>(
 
     }
 
+    fun getDataSet(): List<T> {
+        return mDataSet
+    }
+
     /**
      * 当有Header view时，修改数据并进行定向刷新，需要修正角标
      *
