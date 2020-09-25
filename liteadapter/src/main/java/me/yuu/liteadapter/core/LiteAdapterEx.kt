@@ -22,7 +22,7 @@ import java.lang.ref.WeakReference
  * @author yu
  * @date 2018/1/12
  */
-class LiteAdapterEx<T>(context: Context) : LiteAdapter<T>(context) {
+open class LiteAdapterEx<T>(context: Context) : LiteAdapter<T>(context) {
 
     private var moreLoader: MoreLoader? = null
     private var herders: SparseArray<View> = SparseArray()

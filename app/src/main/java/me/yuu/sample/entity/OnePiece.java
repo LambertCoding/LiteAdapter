@@ -1,15 +1,28 @@
 package me.yuu.sample.entity;
 
+import me.yuu.liteadapter.entity.RadioEntity;
+
 /**
  * @author yu
  * @date 2018/1/11
  */
 
-public class OnePiece {
+public class OnePiece implements RadioEntity {
 
     private String desc;
     private int imageRes;
     private boolean isBigType;
+    private boolean isChecked;
+
+    @Override
+    public boolean isChecked() {
+        return isChecked;
+    }
+
+    @Override
+    public void setChecked(boolean isChecked) {
+        this.isChecked = isChecked;
+    }
 
     public OnePiece(String desc) {
         this(desc, -1, false);

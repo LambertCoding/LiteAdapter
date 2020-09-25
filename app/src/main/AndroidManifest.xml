@@ -19,6 +19,7 @@
         <activity android:name=".ui.EmptyAndLoadMoreActivity" />
         <activity android:name=".ui.HeaderAndFooterActivity" />
         <activity android:name=".ui.DataBindingSampleActivity" />
+        <activity android:name=".ui.RadioActivity" />
     </application>
 
 </manifest>

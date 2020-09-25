@@ -6,8 +6,8 @@
     android:layout_width="match_parent"
     android:layout_height="180dp"
     android:layout_marginLeft="15dp"
-    android:layout_marginRight="15dp"
     android:layout_marginTop="10dp"
+    android:layout_marginRight="15dp"
     app:cardCornerRadius="8dp"
     app:cardElevation="10dp">
 
@@ -22,8 +22,20 @@
         android:layout_height="wrap_content"
         android:layout_gravity="bottom|center_horizontal"
         android:layout_marginBottom="10dp"
-        android:layout_marginEnd="15dp"
         android:text="desc"
         android:textColor="#fff" />
+
+    <TextView
+        android:id="@+id/tvTag"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="end"
+        android:layout_margin="10dp"
+        android:visibility="gone"
+        android:background="@color/colorAccent"
+        android:padding="2dp"
+        android:text="选中"
+        android:textColor="@android:color/white"
+        android:textSize="12sp" />
 
 </androidx.cardview.widget.CardView>
