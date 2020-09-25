@@ -22,7 +22,7 @@ allprojects {
 
 // in module build.gradle
 
-implementation 'com.github.yu1tiao:LiteAdapter:1.1.2'
+implementation 'com.github.yu1tiao:LiteAdapter:1.1.3'
 ...
 ```
 ## Usages
