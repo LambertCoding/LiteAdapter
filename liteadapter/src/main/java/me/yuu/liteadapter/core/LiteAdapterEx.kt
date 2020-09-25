@@ -208,7 +208,6 @@ open class LiteAdapterEx<T>(context: Context) : LiteAdapter<T>(context) {
         }
     }
 
-
     override fun beforeUpdateData() {
         // setNewData后，notifyDataSetChanged之前回调
         // 设置数据后判断是否占满一页，如果不满一页就不开启load more，反之则开启

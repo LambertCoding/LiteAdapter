@@ -43,5 +43,6 @@ class MainActivity : AppCompatActivity() {
         data.add(SampleEntity("Empty view & Auto load more", EmptyAndLoadMoreActivity::class.java))
         data.add(SampleEntity("DataBinding", DataBindingSampleActivity::class.java))
         data.add(SampleEntity("RadioActivity", RadioActivity::class.java))
+        data.add(SampleEntity("SectionActivity", SectionActivity::class.java))
     }
 }

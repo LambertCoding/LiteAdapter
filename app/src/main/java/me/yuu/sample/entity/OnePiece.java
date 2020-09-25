@@ -1,13 +1,13 @@
 package me.yuu.sample.entity;
 
-import me.yuu.liteadapter.entity.RadioEntity;
+import me.yuu.liteadapter.entity.RadioItem;
 
 /**
  * @author yu
  * @date 2018/1/11
  */
 
-public class OnePiece implements RadioEntity {
+public class OnePiece implements RadioItem {
 
     private String desc;
     private int imageRes;

@@ -2,12 +2,12 @@ package me.yuu.liteadapter.advenced
 
 import android.content.Context
 import me.yuu.liteadapter.core.LiteAdapterEx
-import me.yuu.liteadapter.entity.RadioEntity
+import me.yuu.liteadapter.entity.RadioItem
 
 /**
  * 单选的列表，数据需要实现RadioEntity，并且一开始数据集合只能有一个或者没有选中项
  */
-class RadioAdapter<T : RadioEntity>(context: Context) : LiteAdapterEx<T>(context) {
+open class RadioAdapter<T : RadioItem>(context: Context) : LiteAdapterEx<T>(context) {
 
     private var checkedIndex = -1
     var checkedItem: T? = null

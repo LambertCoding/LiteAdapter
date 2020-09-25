@@ -20,6 +20,7 @@
         <activity android:name=".ui.HeaderAndFooterActivity" />
         <activity android:name=".ui.DataBindingSampleActivity" />
         <activity android:name=".ui.RadioActivity" />
+        <activity android:name=".ui.SectionActivity" />
     </application>
 
 </manifest>
