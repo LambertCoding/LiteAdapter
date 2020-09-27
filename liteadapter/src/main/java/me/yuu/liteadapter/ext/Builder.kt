@@ -1,11 +1,12 @@
 package me.yuu.liteadapter.ext
 
 import android.content.Context
+import me.yuu.liteadapter.advenced.MultiSelectAdapter
 import me.yuu.liteadapter.advenced.RadioAdapter
 import me.yuu.liteadapter.advenced.SectionAdapter
 import me.yuu.liteadapter.core.LiteAdapter
 import me.yuu.liteadapter.core.LiteAdapterEx
-import me.yuu.liteadapter.entity.RadioItem
+import me.yuu.liteadapter.entity.SelectableItem
 import me.yuu.liteadapter.entity.SectionItem
 
 
@@ -26,7 +27,7 @@ fun <T> buildAdapterEx(context: Context, initiator: LiteAdapterEx<T>.() -> Unit)
 /**
  * 单选列表
  */
-fun <T : RadioItem> buildRadioAdapter(context: Context, initiator: RadioAdapter<T>.() -> Unit): RadioAdapter<T> {
+fun <T : SelectableItem> buildRadioAdapter(context: Context, initiator: RadioAdapter<T>.() -> Unit): RadioAdapter<T> {
     return RadioAdapter<T>(context).apply(initiator)
 }
 
@@ -35,4 +36,11 @@ fun <T : RadioItem> buildRadioAdapter(context: Context, initiator: RadioAdapter<
  */
 fun <T : SectionItem> buildSectionAdapter(context: Context, initiator: SectionAdapter<T>.() -> Unit): SectionAdapter<T> {
     return SectionAdapter<T>(context).apply(initiator)
+}
+
+/**
+ * 多选列表
+ */
+fun <T : SelectableItem> buildMultiSelectAdapter(context: Context, initiator: MultiSelectAdapter<T>.() -> Unit): MultiSelectAdapter<T> {
+    return MultiSelectAdapter<T>(context).apply(initiator)
 }

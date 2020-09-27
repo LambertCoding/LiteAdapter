@@ -68,9 +68,10 @@ open class LiteAdapterEx<T>(context: Context) : LiteAdapter<T>(context) {
             if (isEmptyViewEnable()) index--
             return footers.keyAt(index)
         }
-        return if (isLoadMoreEnable() && isLoadMoreIndex(position)) {
-            VIEW_TYPE_LOAD_MORE
-        } else super.getItemViewType(position)
+        if (isLoadMoreEnable() && isLoadMoreIndex(position)) {
+            return VIEW_TYPE_LOAD_MORE
+        }
+        return super.getItemViewType(position)
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {

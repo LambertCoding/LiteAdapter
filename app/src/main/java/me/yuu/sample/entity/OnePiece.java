@@ -1,13 +1,13 @@
 package me.yuu.sample.entity;
 
-import me.yuu.liteadapter.entity.RadioItem;
+import me.yuu.liteadapter.entity.SelectableItem;
 
 /**
  * @author yu
  * @date 2018/1/11
  */
 
-public class OnePiece implements RadioItem {
+public class OnePiece implements SelectableItem {
 
     private String desc;
     private int imageRes;
@@ -15,12 +15,12 @@ public class OnePiece implements RadioItem {
     private boolean isChecked;
 
     @Override
-    public boolean isChecked() {
+    public boolean isSelected() {
         return isChecked;
     }
 
     @Override
-    public void setChecked(boolean isChecked) {
+    public void setSelected(boolean isChecked) {
         this.isChecked = isChecked;
     }
 

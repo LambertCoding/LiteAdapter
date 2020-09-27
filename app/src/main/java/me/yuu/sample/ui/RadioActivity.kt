@@ -48,7 +48,7 @@ class RadioActivity : BaseActivity() {
     }
 
     private fun bindData2View(holder: ViewHolder, item: OnePiece) {
-        holder.setVisibility(R.id.tvTag, if (item.isChecked) View.VISIBLE else View.GONE)
+        holder.setVisibility(R.id.tvTag, if (item.isSelected) View.VISIBLE else View.GONE)
         holder.setText(R.id.tvDesc, item.desc)
                 .doAction<ImageView>(R.id.ivImage) { view ->
                     if (item.imageRes == -1) item.imageRes = R.mipmap.ic_launcher

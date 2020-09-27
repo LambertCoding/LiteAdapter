@@ -15,7 +15,7 @@ open class SectionAdapter<T : SectionItem>(context: Context) : LiteAdapterEx<T>(
      * 其中分组的第一个为头，中间的为body，最后一个为脚，如果该分组只有一条数据，itemType 为 SINGLE
      * @param sectionList 每一个集合是一个分组
      */
-    fun addSectionData(vararg sectionList: List<T>) {
+    open fun addSectionData(vararg sectionList: List<T>) {
         val dataList = mutableListOf<T>()
         sectionList.forEach {
             if (it.isNotEmpty()) {

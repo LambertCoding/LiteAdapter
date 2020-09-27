@@ -49,10 +49,6 @@ open class LiteAdapter<T>(protected val context: Context) : AbsAdapter<T>() {
     }
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-        bindInjector(holder, position)
-    }
-
-    protected open fun bindInjector(holder: ViewHolder, position: Int) {
         val item = mDataSet[adjustGetItemIndex(position)]
         val viewType = getItemViewType(position)
 
