@@ -44,5 +44,6 @@ class MainActivity : AppCompatActivity() {
         data.add(SampleEntity("DataBinding", DataBindingSampleActivity::class.java))
         data.add(SampleEntity("RadioActivity", RadioActivity::class.java))
         data.add(SampleEntity("SectionActivity", SectionActivity::class.java))
+        data.add(SampleEntity("GridActivity", GridActivity::class.java))
     }
 }

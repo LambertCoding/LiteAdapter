@@ -9,6 +9,7 @@ import java.util.List;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+
 import me.yuu.liteadapter.core.LiteAdapterEx;
 import me.yuu.sample.R;
 import me.yuu.sample.entity.OnePiece;
@@ -37,11 +38,15 @@ public abstract class BaseActivity extends AppCompatActivity {
 
     protected void initView() {
         RecyclerView recyclerView = findViewById(R.id.recyclerView);
-        recyclerView.setLayoutManager(new LinearLayoutManager(this));
+        recyclerView.setLayoutManager(initLayoutManager());
         recyclerView.setAdapter(adapter = createAdapter());
     }
 
-    protected int getLayoutId(){
+    protected RecyclerView.LayoutManager initLayoutManager() {
+        return new LinearLayoutManager(this);
+    }
+
+    protected int getLayoutId() {
         return R.layout.layout_list;
     }
 

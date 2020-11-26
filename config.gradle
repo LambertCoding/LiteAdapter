@@ -8,10 +8,10 @@ ext {
     ]
 
     kotlinDeps = [
-            kotlin_stdlib            : "org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.3.72",
+            kotlin_stdlib            : "org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.4.20",
             // 协程
-            kotlin_coroutines        : "org.jetbrains.kotlinx:kotlinx-coroutines-core:1.3.5",
-            kotlin_coroutines_android: "org.jetbrains.kotlinx:kotlinx-coroutines-android:1.3.5",
+            kotlin_coroutines        : "org.jetbrains.kotlinx:kotlinx-coroutines-core:1.4.2",
+            kotlin_coroutines_android: "org.jetbrains.kotlinx:kotlinx-coroutines-android:1.4.2",
     ]
 
     androidxDeps = [

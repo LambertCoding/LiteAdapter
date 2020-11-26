@@ -13,8 +13,7 @@ typealias OnItemLongClickListener = (index: Int, item: Any) -> Unit
  * @author yu
  * @date 2018/1/14
  */
-abstract class AbsAdapter<T>(
-) : RecyclerView.Adapter<ViewHolder>(), DataOperator<T> {
+abstract class AbsAdapter<T> : RecyclerView.Adapter<ViewHolder>(), DataOperator<T> {
 
     protected var diffCallback: LiteDiffUtil.Callback? = null
 

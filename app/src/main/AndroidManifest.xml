@@ -21,6 +21,7 @@
         <activity android:name=".ui.DataBindingSampleActivity" />
         <activity android:name=".ui.RadioActivity" />
         <activity android:name=".ui.SectionActivity" />
+        <activity android:name=".ui.GridActivity" />
     </application>
 
 </manifest>
